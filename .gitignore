@@ -1,0 +1,60 @@
+# ----------------------------------------------------------------------
+# 1. Build and Dependency Artifacts
+# ----------------------------------------------------------------------
+
+# Node dependencies
+/node_modules
+
+# Build output directories
+# SvelteKit standard build output directory
+/.svelte-kit
+# Vite build output directory (usually 'build' or 'dist' in many projects)
+/build
+/dist
+
+# npm and yarn cache files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Lock files (unless you want to commit them for consistent deployments)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# ----------------------------------------------------------------------
+# 2. Editor and OS specific files
+# ----------------------------------------------------------------------
+
+# macOS System files
+.DS_Store
+
+# VSCode settings/cache
+.vscode
+.vscode-test/
+
+# IntelliJ/Webstorm IDE files
+.idea
+
+# Environment variables
+# This is crucial for security!
+.env
+.env.local
+.env.*.local
+
+# Vim/Nano swap files
+*.swp
+*~
+
+# Misc
+.cache
+
+# ----------------------------------------------------------------------
+# 3. Svelte-specific
+# ----------------------------------------------------------------------
+
+# Generated Types (if using TypeScript)
+# SvelteKit generates a types folder inside .svelte-kit, but good to be explicit
+# to avoid conflicts if you generate types elsewhere.
+types
