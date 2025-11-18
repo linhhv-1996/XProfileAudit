@@ -29,13 +29,15 @@
   <div class="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6 lg:px-8">
     
     <a href="/" class="flex items-center gap-2.5 group">
-      <div class="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gray-900 text-white shadow-lg shadow-gray-900/20 ring-1 ring-black/5 transition-transform group-hover:scale-105">
-        <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+      <div class="relative flex h-8 w-8 items-center justify-center rounded-lg bg-gray-900 text-white shadow-md ring-1 ring-gray-900/5 transition-transform group-hover:scale-105 group-active:scale-95 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-tr from-gray-900 to-gray-800"></div>
+        
+        <svg class="relative w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
         </svg>
       </div>
       <span class="text-lg font-bold tracking-tight text-gray-900 group-hover:text-gray-700 transition-colors">
-        X Profile Studio
+        X Profile Booster
       </span>
     </a>
 
