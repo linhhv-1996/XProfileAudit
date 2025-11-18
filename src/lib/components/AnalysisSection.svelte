@@ -161,7 +161,7 @@
         <div id="tab-content-container">
           {#if activeTab === 'audit-free'}
             <div class="tab-content p-6 sm:p-8">
-              <div class="border-b border-gray-200 pb-6 mb-6 space-y-5">
+              <div class=" pb-2 mb-0 space-y-5">
                 <div class="grid gap-6 md:grid-cols-2 md:items-start">
                   <div class="space-y-6">
                     <div class="border border-gray-200 rounded-lg p-4 bg-gray-50/70">
@@ -187,7 +187,12 @@
                     </div>
 
                     <div>
-                      <p class="text-sm font-semibold text-gray-800">Key Scores (0–100)</p>
+                      <div class="flex items-center justify-between mb-2">
+                        <p class="text-sm font-semibold text-gray-800">Key Scores (0–100)</p>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary text-white">
+                          Overall: {analysisData.analysis.overallScore}/100
+                        </span>
+                      </div>
                       <div class="mt-4 space-y-3 text-xs">
                         <div class="flex items-center gap-3">
                           <div class="w-32 text-gray-600">Niche Clarity</div>
@@ -221,10 +226,10 @@
                   </div>
 
                   <div>
-                    <p class="text-sm font-semibold text-gray-800">
+                    <!-- <p class="text-sm font-semibold text-gray-800">
                       Biggest Leaks &amp; Priority Tips
-                    </p>
-                    <div class="mt-3 space-y-4 text-sm text-gray-800 text-left">
+                    </p> -->
+                    <div class="mt-0 space-y-4 text-sm text-gray-800 text-left">
                       <div class="rounded-lg border border-rose-300 bg-rose-50 px-4 py-3">
                         <p class="text-xs font-bold uppercase tracking-wide text-rose-700">
                           Biggest leaks
@@ -256,24 +261,7 @@
                 </div>
               </div>
 
-              <div class="pt-2 text-center">
-                <p class="text-sm sm:text-base font-bold text-gray-900 mb-1.5">
-                  This is the free audit.
-                </p>
-                <p class="text-xs sm:text-sm text-gray-600 max-w-md mx-auto">
-                  You received your Engagement Rate and Biggest Leaks. Upgrade to Pro for
-                  ready-to-use Bio Drafts, Proven Growth Hooks, and Personalized Sponsor
-                  Pricing.
-                </p>
-                <button
-                  type="button"
-                  class="mt-4 inline-flex items-center rounded-lg border border-rose-500 px-4 py-2 text-xs sm:text-sm font-semibold text-rose-600 shadow-sm hover:bg-rose-50 transition-colors"
-                  on:click={openProModal}
-                >
-                  View Pro Pricing
-                </button>
-              </div>
-            </div>
+             </div>
           {/if}
 
           {#if activeTab === 'fixes-growth'}

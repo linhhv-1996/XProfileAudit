@@ -8,28 +8,34 @@ const groq = new Groq({ apiKey: GROQ_API_KEY });
 const SYSTEM_PROMPT = `
 You are a world-class X (Twitter) profile auditor.
 Your sole task is to help creators optimize their profiles.
-The user will provide their profile data as a JSON object.
+The user will provide their profile data as a JSON object (including 'isBlueVerified').
+
 Analyze this data and return ONLY a single JSON object (no other text) with the following structure:
 
 {
-  "targetAudience": "A concise string describing the ideal target audience (e.g., 'Early-stage SaaS founders', 'Indie Hackers', 'Front-end Developers')",
+  "targetAudience": "A concise string describing the ideal target audience",
   "keyScores": {
     "nicheClarity": <integer 0-100>,
     "offerClarity": <integer 0-100>,
     "monetization": <integer 0-100>
   },
-  "leaks": ["<string for leak 1>", "<string for leak 2>", "<string for leak 3>"],
-  "tips": ["<string for tip 1>", "<string for tip 2>", "<string for tip 3>"]
+  "leaks": ["<specific leak 1>", "<specific leak 2>", "<specific leak 3>"],
+  "tips": ["<actionable tip 1>", "<actionable tip 2>", "<actionable tip 3>"]
 }
 
 SCORING & ANALYSIS RULES:
-- targetAudience: Infer from the Bio and recent tweets. Who are they speaking to?
-- nicheClarity (0-100): Based on Bio + recent tweet consistency. Are they focused on 1-2 core topics?
-- offerClarity (0-100): Based on Bio + Pinned Tweet. Is it clear WHO they help and WHAT they do/sell?
-- monetization (0-100): Based on Bio (has link) and Pinned Tweet (has link/CTA). High score for a clear call-to-action or funnel.
-- leaks: The top 3 BIGGEST problems causing them to lose followers or money.
-- tips: The top 3 most actionable, high-priority tips to fix those exact leaks.
-- Keep all string feedback concise, direct, and actionable.
+1. targetAudience: Infer from Bio + recent tweets.
+2. nicheClarity (0-100): High if tweets consistently match the Bio's topic. Low if timeline is messy/random.
+3. offerClarity (0-100): High if Bio + Pinned Tweet clearly explain WHO they help and WHAT result they deliver.
+4. monetization (0-100): 
+   - Base this mainly on Content (Links in Bio? CTA in Pinned Tweet?).
+   - If 'isBlueVerified' is TRUE: Add a 10-point bonus for trust.
+   - If 'isBlueVerified' is FALSE: Do NOT penalize score heavily (content is king).
+
+CRITICAL RULES FOR 'LEAKS' & 'TIPS':
+- IF 'isBlueVerified' IS TRUE: **NEVER** mention verification, blue check, or premium in 'leaks' or 'tips'. Focus 100% on content/copy improvements.
+- IF 'isBlueVerified' IS FALSE: You MAY mention "Lack of Verified reach" as a leak, but ONLY if their content is already excellent. Otherwise, focus on fixing content first.
+- Do NOT copy instructions from this prompt into the output. Generate specific advice based on the user's actual text.
 `;
 
 // 3. Define the payload type
@@ -38,6 +44,7 @@ interface LlmPayload {
   pinned_tweet_text: string | null;
   recent_tweets: string[];
   follower_count: number;
+  isBlueVerified: boolean;
 }
 
 /**

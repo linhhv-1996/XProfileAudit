@@ -105,7 +105,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
         // Nếu code chạy đến đây, data user an toàn
         const rest_id = userData.user.result.rest_id;
-        const profileData = userData.user.result.legacy; // (Bio, followers,...)
+        const isBlueVerified = userData.user.result.is_blue_verified || false;
+        const profileData = userData.user.result.legacy;
 
         // --- Call 2: Lấy Tweets bằng rest_id ---
         const tweetsUrl = `https://${API_HOST}/user-tweets?user=${rest_id}&count=2`;
@@ -160,14 +161,21 @@ export const POST: RequestHandler = async ({ request, locals }) => {
             bio: profileData.description,
             pinned_tweet_text: pinnedTweet?.legacy?.full_text || null,
             recent_tweets: regularTweets.map((t: any) => t.legacy?.full_text),
-            follower_count: profileData.followers_count
+            follower_count: profileData.followers_count,
+            isBlueVerified: isBlueVerified
         };
 
         const aiAnalysis = await getAIAnalysis(llmPayload);
 
+        const scores = aiAnalysis.keyScores;
+        const overallScore = Math.round(
+            (scores.nicheClarity + scores.offerClarity + scores.monetization) / 3
+        );
+
         const finalAnalysis = {
             ...aiAnalysis,
-            avgEngagementRate: formattedAvgER
+            avgEngagementRate: formattedAvgER,
+            overallScore: overallScore
         };
 
         const finalResult = {
