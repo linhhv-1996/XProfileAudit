@@ -1,80 +1,88 @@
 import Groq from 'groq-sdk';
 import { GROQ_API_KEY } from '$env/static/private';
 
-// 1. Initialize Groq client
 const groq = new Groq({ apiKey: GROQ_API_KEY });
 
-// 2. The "god-tier" English prompt
-const SYSTEM_PROMPT = `
-You are a world-class X (Twitter) profile auditor.
-Your sole task is to help creators optimize their profiles.
-The user will provide their profile data as a JSON object (including 'isBlueVerified').
-
-Analyze this data and return ONLY a single JSON object (no other text) with the following structure:
-
-{
-  "targetAudience": "A concise string describing the ideal target audience",
-  "keyScores": {
-    "nicheClarity": <integer 0-100>,
-    "offerClarity": <integer 0-100>,
-    "monetization": <integer 0-100>
-  },
-  "leaks": ["<specific leak 1>", "<specific leak 2>", "<specific leak 3>"],
-  "tips": ["<actionable tip 1>", "<actionable tip 2>", "<actionable tip 3>"]
+export interface AuditChecklist {
+  targetAudience: string;
+  niche: {
+    bioHasKeywords: boolean;
+    bioShowsAuthority: boolean;
+    profilePhotoProfessional: boolean;
+  };
+  content: {
+    tweetsMatchBio: boolean;
+    usesFormatting: boolean;
+    engagesAudience: boolean;
+  };
+  offer: {
+    bioClearProblemSolution: boolean;
+    pinnedTweetRelatesToBio: boolean;
+    pinnedTweetHasSocialProof: boolean;
+  };
+  monetization: {
+    hasLeadMagnet: boolean;
+    pinnedTweetHasCTA: boolean;
+    urgencyOrScarcity: boolean;
+  };
 }
 
-SCORING & ANALYSIS RULES:
-1. targetAudience: Infer from Bio + recent tweets.
-2. nicheClarity (0-100): High if tweets consistently match the Bio's topic. Low if timeline is messy/random.
-3. offerClarity (0-100): High if Bio + Pinned Tweet clearly explain WHO they help and WHAT result they deliver.
-4. monetization (0-100): 
-   - Base this mainly on Content (Links in Bio? CTA in Pinned Tweet?).
-   - If 'isBlueVerified' is TRUE: Add a 10-point bonus for trust.
-   - If 'isBlueVerified' is FALSE: Do NOT penalize score heavily (content is king).
+const AUDIT_SYSTEM_PROMPT = `
+You are an elite X (Twitter) Profile Auditor used by top growth agencies.
+Analyze the provided profile JSON data and return a JSON checklist.
 
-CRITICAL RULES FOR 'LEAKS' & 'TIPS':
-- IF 'isBlueVerified' IS TRUE: **NEVER** mention verification, blue check, or premium in 'leaks' or 'tips'. Focus 100% on content/copy improvements.
-- IF 'isBlueVerified' IS FALSE: You MAY mention "Lack of Verified reach" as a leak, but ONLY if their content is already excellent. Otherwise, focus on fixing content first.
-- Do NOT copy instructions from this prompt into the output. Generate specific advice based on the user's actual text.
+CRITERIA FOR "TRUE" (Strict assessment):
+
+--- NICHE & IDENTITY ---
+1. bioHasKeywords: Bio MUST contain niche-specific keywords (e.g., "SaaS", "SEO", "Copywriting").
+2. bioShowsAuthority: Bio mentions specific numbers, titles, or achievements (e.g., "$10k/mo", "Founder", "Ex-Google", "5yrs exp").
+3. profilePhotoProfessional: Avatar is not default/missing and looks distinct/professional (Infer from url/description).
+
+--- CONTENT STRATEGY ---
+4. tweetsMatchBio: Recent tweets strictly relate to the Bio's topics.
+5. usesFormatting: Tweets use line breaks, lists, or emojis. No walls of text.
+6. engagesAudience: Tweets ask questions or reply to others.
+
+--- OFFER CLARITY ---
+7. bioClearProblemSolution: Bio follows a variation of: "Helping [Who] achieve [Result]".
+8. pinnedTweetRelatesToBio: Pinned tweet expands on the Bio's promise.
+9. pinnedTweetHasSocialProof: Pinned tweet shows results, revenue, testimonials, or client logos.
+
+--- MONETIZATION ---
+10. hasLeadMagnet: The link in bio goes to a capture page (Newsletter, Gumroad, Calendly) rather than a generic home page (e.g., no raw linktree without context).
+11. pinnedTweetHasCTA: Explicit instruction to click/DM.
+12. urgencyOrScarcity: CTA uses words like "Limited", "Only X left", "Ends soon", "Free for 24h".
+
+OUTPUT RULES:
+- "targetAudience": A short English phrase (e.g., "SaaS Founders & Indie Hackers").
+- Return ONLY the JSON structure matching the AuditChecklist interface.
 `;
 
-// 3. Define the payload type
-interface LlmPayload {
-  bio: string;
-  pinned_tweet_text: string | null;
-  recent_tweets: string[];
-  follower_count: number;
-  isBlueVerified: boolean;
-}
-
-/**
- * The separated Groq call function
- * Takes the payload, returns the parsed JSON analysis
- */
-export async function getAIAnalysis(payload: LlmPayload) {
+export async function getAuditChecklist(payload: any): Promise<AuditChecklist> {
   try {
     const completion = await groq.chat.completions.create({
       model: 'llama-3.1-8b-instant',
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: AUDIT_SYSTEM_PROMPT },
         { role: 'user', content: JSON.stringify(payload) }
       ],
       response_format: { type: "json_object" },
       temperature: 0,
-      seed: 1811
     });
 
-    if (!completion.choices[0]?.message?.content) {
-      throw new Error('Groq returned an empty response');
-    }
+    const content = completion.choices[0]?.message?.content;
+    if (!content) throw new Error('Empty response from AI');
 
-    // Parse the JSON string Groq returns
-    const aiAnalysis = JSON.parse(completion.choices[0].message.content);
-    return aiAnalysis;
-
-  } catch (llmError: any) {
-    console.error("Error from Groq API:", llmError);
-    // Throw the error up to the server route
-    throw new Error(`Failed to get AI analysis: ${llmError.message}`);
+    return JSON.parse(content) as AuditChecklist;
+  } catch (e: any) {
+    console.error("AI Error:", e);
+    return {
+      targetAudience: "General Audience",
+      niche: { bioHasKeywords: false, bioShowsAuthority: false, profilePhotoProfessional: true },
+      content: { tweetsMatchBio: false, usesFormatting: false, engagesAudience: false },
+      offer: { bioClearProblemSolution: false, pinnedTweetRelatesToBio: false, pinnedTweetHasSocialProof: false },
+      monetization: { hasLeadMagnet: false, pinnedTweetHasCTA: false, urgencyOrScarcity: false }
+    };
   }
 }
+

@@ -15,10 +15,10 @@
 </script>
 
 <svelte:head>
-  <title>Log in – X Profile Studio</title>
+  <title>Log in – X Profile Booster</title>
   <meta
     name="description"
-    content="Log in to X Profile Studio with Google or magic link to access your saved audits and monetization kit."
+    content="Log in to X Profile Booster with Google or magic link to access your saved audits and monetization kit."
   />
 </svelte:head>
 
@@ -36,7 +36,7 @@
           </p>
 
           <h1 class="mt-4 text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
-            Log in to X Profile Studio
+            Log in to X Profile Booster
           </h1>
           <p class="mt-2 text-sm text-gray-500 max-w-sm mx-auto">
             Use your Google account or a one-time magic link to access your profile audits and

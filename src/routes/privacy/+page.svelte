@@ -1,6 +1,6 @@
 <svelte:head>
-  <title>Privacy Policy – X Profile Studio</title>
-  <meta name="description" content="Privacy Policy for X Profile Studio." />
+  <title>Privacy Policy – X Profile Booster</title>
+  <meta name="description" content="Privacy Policy for X Profile Booster." />
 </svelte:head>
 
 <section class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-0 py-10 sm:py-12">
@@ -13,7 +13,7 @@
 
   <div class="space-y-6 text-sm sm:text-base text-gray-700">
     <p>
-      X Profile Studio (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) helps you audit and optimize
+      X Profile Booster (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) helps you audit and optimize
       your X (Twitter) profile. This Privacy Policy explains how we collect, use, and protect your
       information when you use our website and tools.
     </p>
@@ -66,7 +66,7 @@
       </h2>
       <p>
         We may use third-party providers (such as analytics or payment processors) to operate
-        X Profile Studio. These providers only receive the minimum data required to perform their
+        X Profile Booster. These providers only receive the minimum data required to perform their
         function and are not allowed to use it for any other purpose.
       </p>
     </section>

@@ -71,7 +71,7 @@
     
     <div class="text-center space-y-2 mb-8">
       <h3 class="text-xl font-bold text-gray-900 tracking-tight">
-        Sign in to X Profile Studio
+        Sign in to X Profile Booster
       </h3>
       <p class="text-sm text-gray-500">
         Securely access your audits, save history, and unlock Pro features.

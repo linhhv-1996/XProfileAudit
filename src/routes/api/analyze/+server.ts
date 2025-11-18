@@ -2,29 +2,24 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { RAPIDAPI_KEY } from '$env/static/private';
 
-import { getAIAnalysis } from '$lib/server/ai';
+import { getAuditChecklist } from '$lib/server/ai';
+import { calculateDeterministicScore, type ApiChecks } from '$lib/server/scoring';
 import { getCache, setCache } from '$lib/server/cache';
 import { getUserProfile } from '$lib/server/users';
 
 const API_HOST = 'twitter241.p.rapidapi.com';
 
-
 /**
  * Tính toán Tỷ lệ Tương tác Trung bình
  * (Tổng Engagements / Tổng Views) * 100
- * Engagements = Likes + Replies + Retweets + Bookmarks
  */
 function calculateAvgEngagementRate(tweets: any[]): number {
     let totalEngagements = 0;
     let totalViews = 0;
 
-    // Nếu không có tweet nào thì trả về 0
-    if (!tweets || tweets.length === 0) {
-        return 0;
-    }
+    if (!tweets || tweets.length === 0) return 0;
 
     for (const tweet of tweets) {
-        // Check cho an toàn, lỡ API trả về rác
         if (tweet && tweet.legacy) {
             totalEngagements += (tweet.legacy.favorite_count || 0);
             totalEngagements += (tweet.legacy.reply_count || 0);
@@ -32,23 +27,17 @@ function calculateAvgEngagementRate(tweets: any[]): number {
             totalEngagements += (tweet.legacy.bookmark_count || 0);
         }
 
-        // Check xem có data 'views' không
         if (tweet && tweet.views && tweet.views.count) {
             totalViews += Number(tweet.views.count) ?? 0;
         }
     }
 
-    // Tránh chia cho 0
-    if (totalViews === 0) {
-        return 0;
-    }
-
-    // Trả về giá trị thô (ví dụ: 0.019)
+    if (totalViews === 0) return 0;
     return (totalEngagements / totalViews);
 }
 
 export const POST: RequestHandler = async ({ request, locals }) => {
-
+    // 1. Check Auth
     if (!locals.user) {
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -60,140 +49,151 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         return json({ error: 'Handle is required' }, { status: 400 });
     }
 
-    // Tùy chọn (options) cho mọi request call RapidAPI
-    const options = {
-        method: 'GET',
-        headers: {
-            'x-rapidapi-key': RAPIDAPI_KEY,
-            'x-rapidapi-host': API_HOST
-        }
-    };
-
     try {
         const dbUser = await getUserProfile(uid);
         const isUserPro = dbUser?.isPro === true;
-        const forceRealtime = isUserPro;
 
-        // ----- BƯỚC 1: CHECK CACHE (NẾU KHÔNG PHẢI "PRO") -----
-        if (!forceRealtime) {
+        // 2. Check Cache Kết quả hiển thị (Chỉ áp dụng cho user Free)
+        // User Pro luôn được xem data mới nhất (Real-time)
+        if (!isUserPro) {
             const cachedData = await getCache(handle);
             if (cachedData) {
-                return json(cachedData);
+                return json({ ...cachedData, isCached: true });
             }
         }
 
-        // ----- BƯỚC 2: CACHE MISS (hoặc "PRO" force) -> CHẠY LẠI TỪ ĐẦU -----
-        console.log(`[RUNNING] Chạy analysis mới cho: ${handle} (Force: ${!!forceRealtime})`);
+        console.log(`[RUNNING] Chạy analysis mới cho: ${handle} (Pro: ${isUserPro})`);
 
-        // --- Call 1: Lấy User Info (Bio, rest_id, followers...) ---
+        const options = {
+            method: 'GET',
+            headers: {
+                'x-rapidapi-key': RAPIDAPI_KEY,
+                'x-rapidapi-host': API_HOST
+            }
+        };
+
+        // --- Call 1: Lấy User Info ---
         const userUrl = `https://${API_HOST}/user?username=${handle}`;
         const userResponse = await fetch(userUrl, options);
+        const userData = await userResponse.json();
 
-        if (!userResponse.ok) {
-            throw new Error(`Failed to fetch user (HTTP ${userResponse.status})`);
+        if (!userResponse.ok || !userData.result?.data?.user?.result) {
+            console.error('API Error (User):', userData);
+            throw new Error('User not found or invalid API response');
         }
 
-        const fetchData = await userResponse.json();
+        const userRaw = userData.result.data.user.result;
+        const rest_id = userRaw.rest_id;
+        const profileData = userRaw.legacy;
+        
+        // Check tích xanh (Blue Verified hoặc Verified Type)
+        const isVerified = !!userRaw.is_blue_verified;
 
-        // Check xem handle có tồn tại không. API trả về 200 OK nhưng lỗi bên trong.
-        if (!fetchData.result || !fetchData.result.data) {
-            console.error('API Error (User):', fetchData);
-            throw new Error(fetchData.message || 'User not found or invalid API response');
-        }
-
-        const userData = fetchData.result.data;
-
-        // Nếu code chạy đến đây, data user an toàn
-        const rest_id = userData.user.result.rest_id;
-        const isBlueVerified = userData.user.result.is_blue_verified || false;
-        const profileData = userData.user.result.legacy;
-
-        // --- Call 2: Lấy Tweets bằng rest_id ---
-        const tweetsUrl = `https://${API_HOST}/user-tweets?user=${rest_id}&count=2`;
+        // --- Call 2: Lấy Tweets ---
+        const tweetsUrl = `https://${API_HOST}/user-tweets?user=${rest_id}&count=20`;
         const tweetsResponse = await fetch(tweetsUrl, options);
-
-        if (!tweetsResponse.ok) {
-            throw new Error(`Failed to fetch tweets (HTTP ${tweetsResponse.status})`);
-        }
-
         const tweetsData = await tweetsResponse.json();
 
-        // Check xem có data timeline không
-        if (!tweetsData.result || !tweetsData.result.timeline) {
-            console.error('API Error (Tweets):', tweetsData);
-            throw new Error('Invalid tweets API response: No timeline data');
+        if (!tweetsResponse.ok) {
+            throw new Error('Failed to fetch tweets');
         }
 
-        // --- Xử lý data tweets ---
+        // --- Parse Timeline ---
         let pinnedTweet = null;
         let regularTweets: any[] = [];
 
-        tweetsData.result.timeline.instructions.forEach((inst: any) => {
-
+        const instructions = tweetsData.result?.timeline?.instructions || [];
+        instructions.forEach((inst: any) => {
             if (inst.type === 'TimelinePinEntry') {
-                if (inst.entry && inst.entry.content && inst.entry.content.itemContent && inst.entry.content.entryType === 'TimelineTimelineItem') {
-                    pinnedTweet = inst.entry.content.itemContent.tweet_results.result;
-                }
-
-                // 2. Lấy Tweet thường
+                const result = inst.entry?.content?.itemContent?.tweet_results?.result;
+                if (result) pinnedTweet = result;
             } else if (inst.type === 'TimelineAddEntries') {
                 regularTweets = inst.entries
-                    .filter((entry: any) =>
-                        entry.content &&
-                        entry.content.itemContent &&
-                        entry.content.itemContent.itemType === 'TimelineTweet'
-                    )
-                    .map((entry: any) => entry.content.itemContent.tweet_results.result);
+                    .filter((e: any) => e.content?.itemContent?.itemType === 'TimelineTweet')
+                    .map((e: any) => e.content.itemContent.tweet_results.result);
             }
         });
 
+        // --- Logic Phân Tích ---
 
-        // --- Call 3: Call API AI của ông (Ông tự thay thế đoạn này) ---
-        // Ông sẽ gom (profileData, pinnedTweet, regularTweets)
-        // và gửi cho API AI của ông
-
-
-        // (Ông sẽ tự tính cái Avg. Engagement Rate dựa trên list `regularTweets`)
+        // 1. Tính Engagement Rate
         const rawAvgER = calculateAvgEngagementRate(regularTweets);
         const formattedAvgER = parseFloat((rawAvgER * 100).toFixed(2));
 
-        const llmPayload = {
-            bio: profileData.description,
-            pinned_tweet_text: pinnedTweet?.legacy?.full_text || null,
-            recent_tweets: regularTweets.map((t: any) => t.legacy?.full_text),
-            follower_count: profileData.followers_count,
-            isBlueVerified: isBlueVerified
+        // 2. Chuẩn bị Payload cho AI (Lấy 10 tweet text để tiết kiệm token)
+        const recentTweetTexts = regularTweets
+            .map((t: any) => t.legacy?.full_text || "")
+            .filter((t: string) => !t.startsWith("RT @")) // Bỏ qua Retweet
+            .slice(0, 10);
+
+        const aiPayload = {
+            bio: profileData.description || "",
+            pinned_text: pinnedTweet?.legacy?.full_text || "",
+            recent_tweets: recentTweetTexts,
+            follower_count: profileData.followers_count
         };
 
-        const aiAnalysis = await getAIAnalysis(llmPayload);
+        // 3. Gọi AI lấy Checklist (True/False)
+        const checklist = await getAuditChecklist(aiPayload);
 
-        const scores = aiAnalysis.keyScores;
-        const overallScore = Math.round(
-            (scores.nicheClarity + scores.offerClarity + scores.monetization) / 3
-        );
-
-        const finalAnalysis = {
-            ...aiAnalysis,
-            avgEngagementRate: formattedAvgER,
-            overallScore: overallScore
+        // 4. Chuẩn bị dữ liệu check cứng từ API
+        const apiChecks: ApiChecks = {
+            hasLink: (profileData.entities?.url?.urls?.length || 0) > 0,
+            hasPinned: !!pinnedTweet,
+            isVerified: isVerified
         };
 
+        // 5. Tính điểm Deterministic (Logic cứng)
+        const scoring = calculateDeterministicScore(checklist, apiChecks);
+
+        // 6. Đóng gói kết quả cuối cùng
         const finalResult = {
             timestamp: Date.now(),
             profile: profileData,
-            pinnedTweet: pinnedTweet,
+            isVerified,
             tweets: regularTweets,
-            analysis: finalAnalysis
+            pinnedTweet,
+            analysis: {
+                targetAudience: checklist.targetAudience,
+                avgEngagementRate: formattedAvgER,
+                
+                // Điểm số tổng (Score)
+                totalScore: scoring.totalScore,
+                
+                // Điểm thành phần (Quy đổi ra thang 100 để hiển thị UI Progress Bar)
+                keyScores: {
+                    nicheClarity: Math.min(100, Math.round((scoring.breakdown.niche / 25) * 100)),
+                    offerClarity: Math.min(100, Math.round((scoring.breakdown.offer / 30) * 100)), // Offer max 30
+                    monetization: Math.min(100, Math.round((scoring.breakdown.monetization / 30) * 100)) // Money max 30
+                },
+                
+                // Lỗi & Lời khuyên (Generated by Code, not AI hallucination)
+                leaks: scoring.leaks,
+                tips: scoring.tips,
+                
+                // Dữ liệu Pro để null (Sẽ gọi qua API /api/generate riêng khi user bấm)
+                pro: null 
+            }
         };
 
-        // ----- BƯỚC 3: LƯU VÀO CACHE (10 PHÚT) -----
+        // 7. Caching Strategy
+        
+        // Cache A: Lưu Context dữ liệu gốc (60 PHÚT)
+        // Để dùng cho các tính năng Generate (Pro) sau này mà không cần gọi lại RapidAPI
+        await setCache(`user_data:${handle}`, { 
+            profile: profileData, 
+            niche: checklist.targetAudience,
+            apiChecks, // Lưu lại status link/pin để AI generate content chuẩn context
+            recentTweetsText: recentTweetTexts // Lưu text tweet để AI học văn phong
+        }, 3600); // 3600s = 1 giờ
+
+        // Cache B: Lưu Kết quả Audit hiển thị (10 PHÚT - Default)
         await setCache(handle, finalResult);
 
-        // --- Trả về 1 cục JSON duy nhất cho frontend ---
         return json(finalResult);
 
     } catch (error: any) {
         console.error('Lỗi trong /api/analyze:', error.message);
-        return json({ error: error.message }, { status: 500 });
+        return json({ error: error.message || 'Internal Server Error' }, { status: 500 });
     }
 };

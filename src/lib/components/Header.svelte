@@ -34,7 +34,7 @@
       <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-[11px] font-bold text-white shadow-lg">
         X
       </div>
-      <span class="text-xl font-bold tracking-tight text-gray-900">X Profile Studio</span>
+      <span class="text-xl font-bold tracking-tight text-gray-900">X Profile Booster</span>
     </a>
 
     <div class="flex items-center gap-3 text-sm">

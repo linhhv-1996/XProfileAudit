@@ -16,7 +16,7 @@
     >
       <div class="space-y-1">
         <p class="text-base sm:text-lg font-semibold text-gray-900">
-          Upgrade to X Profile Studio Pro
+          Upgrade to X Profile Booster Pro
         </p>
         <p class="text-xs sm:text-sm text-gray-500">
           Keep the audit free. Unlock the deeper copy &amp; monetization kit with Pro.
@@ -42,7 +42,7 @@
             $15<span class="text-sm sm:text-base font-normal text-gray-500"> / month</span>
           </p>
           <p class="mt-1 text-xs text-gray-500">
-            Ideal if you want to try X Profile Studio for a few months and keep it flexible.
+            Ideal if you want to try X Profile Booster for a few months and keep it flexible.
           </p>
         {:else}
           <p class="mt-1 text-2xl sm:text-3xl font-bold text-gray-900">

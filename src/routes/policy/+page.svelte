@@ -1,6 +1,6 @@
 <svelte:head>
-  <title>Usage Policy – X Profile Studio</title>
-  <meta name="description" content="Usage policy and basic terms for X Profile Studio." />
+  <title>Usage Policy – X Profile Booster</title>
+  <meta name="description" content="Usage policy and basic terms for X Profile Booster." />
 </svelte:head>
 
 <section class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-0 py-10 sm:py-12">
@@ -13,7 +13,7 @@
 
   <div class="space-y-6 text-sm sm:text-base text-gray-700">
     <p>
-      By using X Profile Studio (&quot;the Service&quot;), you agree to the following terms.
+      By using X Profile Booster (&quot;the Service&quot;), you agree to the following terms.
       If you do not agree, please do not use the Service.
     </p>
 
@@ -22,7 +22,7 @@
         1. Service description
       </h2>
       <p>
-        X Profile Studio provides tools to analyze and improve your X (Twitter) profile, content
+        X Profile Booster provides tools to analyze and improve your X (Twitter) profile, content
         strategy, and monetization readiness. We use your public profile data and posts to generate
         suggestions only.
       </p>
