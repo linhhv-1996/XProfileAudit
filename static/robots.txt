@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Chặn bot vào các trang không cần thiết
+Disallow: /api/*
+Disallow: /login
+Disallow: /account
+
+Sitemap: https://xprofilebooster.com/sitemap.xml

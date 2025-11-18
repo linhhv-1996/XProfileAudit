@@ -88,6 +88,29 @@
   }
 </script>
 
+<svelte:head>
+  <title>X Profile Booster — AI Audit & Monetization for Creators</title>
+  
+  <meta name="description" content="Stop losing followers. Our AI analyzes your X (Twitter) profile to reveal leaks, generate high-converting bios, and build your monetization roadmap." />
+  
+  <meta name="keywords" content="X profile audit, Twitter bio generator, social media optimization, monetization kit, creator tools, AI audit, X Profile Booster" />
+  
+  <link rel="canonical" href="https://xprofilebooster.com/" />
+  
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://xprofilebooster.com/" />
+  <meta property="og:title" content="X Profile Booster — Turn your profile into a business" />
+  <meta property="og:description" content="Free AI Audit. Fix your Bio. Unlock Growth. Get your personalized report in seconds." />
+  <meta property="og:site_name" content="X Profile Booster" />
+  <meta property="og:image" content="https://xprofilebooster.com/og-image.png" />
+  
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@MaxSlashWang" /> <meta name="twitter:creator" content="@MaxSlashWang" />
+  <meta name="twitter:title" content="X Profile Booster — AI Audit & Monetization" />
+  <meta name="twitter:description" content="Is your profile repelling money? Get a free AI audit and fix your bio instantly." />
+  <meta name="twitter:image" content="https://xprofilebooster.com/og-image.png" />
+</svelte:head>
+
 <div class="min-h-screen flex flex-col relative">
   <Header {openProModal} {user} />
 

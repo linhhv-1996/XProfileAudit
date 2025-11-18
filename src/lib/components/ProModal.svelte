@@ -2,162 +2,138 @@
   export let closeProModal: () => void;
 
   let plan: 'monthly' | 'ltd' = 'monthly';
-
   function handleContinue() {
     console.log('Selected plan:', plan);
   }
 </script>
 
-<div class="fixed inset-0 z-40 flex items-center justify-center bg-gray-900/40 px-4">
-  <div class="max-w-[520px] rounded-lg border border-gray-200 bg-white shadow-soft">
-    <!-- Header -->
-    <div
-      class="flex items-start justify-between gap-3 border-b border-gray-200 px-5 sm:px-6 py-4 sm:py-5"
-    >
+<div class="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm px-4 animate-fade-in">
+  
+  <button 
+    class="absolute inset-0 w-full h-full bg-transparent border-0 cursor-default focus:outline-none" 
+    on:click={closeProModal}
+    type="button"
+    aria-label="Close modal backdrop"
+    tabindex="-1"
+  ></button>
+
+  <div class="relative w-full max-w-[520px] rounded-xl border border-gray-200 bg-white shadow-2xl transform transition-all scale-100 z-10">
+    <div class="flex items-start justify-between gap-3 border-b border-gray-100 px-5 sm:px-6 py-4">
       <div class="space-y-1">
-        <p class="text-base sm:text-lg font-semibold text-gray-900">
-          Upgrade to X Profile Booster Pro
+        <p class="text-lg font-bold text-gray-900">
+          Upgrade to X Profile Booster <span class="text-rose-600">Pro</span>
         </p>
-        <p class="text-xs sm:text-sm text-gray-500">
-          Keep the audit free. Unlock the deeper copy &amp; monetization kit with Pro.
+        <p class="text-sm text-gray-500">
+          Unlock the complete <strong>Monetization Kit</strong> & <strong>Growth Templates</strong>.
         </p>
       </div>
       <button
-        class="text-gray-500 hover:text-gray-800 text-xs sm:text-sm rounded-full border border-gray-300 px-3 py-2 leading-none hover:bg-gray-50 transition-colors"
+        class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-1.5 transition-colors"
         type="button"
         on:click={closeProModal}
+        aria-label="Close modal" 
       >
-        ✕
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
       </button>
     </div>
 
-    <!-- Body -->
-    <div class="px-5 sm:px-6 py-4 sm:py-5 space-y-5">
-      <!-- Big price block (dynamic) -->
-      <div>
-        <p class="text-xs sm:text-sm font-medium text-gray-500">Pro access</p>
-
+    <div class="px-5 sm:px-6 py-5 space-y-6">
+      
+      <div class="text-center sm:text-left">
         {#if plan === 'monthly'}
-          <p class="mt-1 text-2xl sm:text-3xl font-bold text-gray-900">
-            $15<span class="text-sm sm:text-base font-normal text-gray-500"> / month</span>
-          </p>
-          <p class="mt-1 text-xs text-gray-500">
-            Ideal if you want to try X Profile Booster for a few months and keep it flexible.
-          </p>
+          <div class="flex items-baseline gap-1 justify-center sm:justify-start">
+              <span class="text-4xl font-extrabold text-gray-900">$15</span>
+              <span class="text-base font-medium text-gray-500">/ month</span>
+          </div>
+          <p class="mt-1 text-sm text-gray-500">Flexible plan. Cancel anytime.</p>
         {:else}
-          <p class="mt-1 text-2xl sm:text-3xl font-bold text-gray-900">
-            $65<span class="text-sm sm:text-base font-normal text-gray-500"> one-time</span>
-          </p>
-          <p class="mt-1 text-xs text-gray-500">
-            Lifetime access to all Pro features and future updates. No recurring fee.
-          </p>
+          <div class="flex items-baseline gap-1 justify-center sm:justify-start">
+              <span class="text-4xl font-extrabold text-gray-900">$65</span>
+              <span class="text-base font-medium text-gray-500">one-time</span>
+          </div>
+          <p class="mt-1 text-sm text-gray-500">Lifetime access. Pay once, use forever.</p>
         {/if}
       </div>
 
-      <!-- Plan toggle -->
-      <div class="space-y-2">
-        <p class="text-xs sm:text-sm font-medium text-gray-500">
-          Choose how you want to pay
-        </p>
-        <div
-          class="grid grid-cols-2 gap-2 text-xs sm:text-sm bg-gray-50 rounded-lg p-1 border border-gray-200"
-        >
-          <!-- Monthly -->
+      <div class="grid grid-cols-2 gap-3">
           <button
             type="button"
-            class="flex flex-col items-start justify-center rounded-md px-2 py-2 text-left transition-colors"
-            class:bg-white={plan === 'monthly'}
-            class:border={plan === 'monthly'}
-            class:border-gray-300={plan === 'monthly'}
+            class="relative flex flex-col items-start p-3 rounded-xl border-2 transition-all text-left
+            {plan === 'monthly' ? 'border-rose-600 bg-rose-50/30' : 'border-gray-200 hover:border-gray-300'}"
             on:click={() => (plan = 'monthly')}
           >
-            <span
-              class="inline-flex items-center gap-1 text-[11px] font-semibold"
-              class:text-primary={plan === 'monthly'}
-              class:text-gray-700={plan !== 'monthly'}
-            >
-              Monthly
-              <span
-                class="hidden sm:inline text-[10px] rounded-full px-1.5 py-0.5 border border-emerald-200 text-emerald-600 bg-emerald-50"
-                >Flexible</span
-              >
-            </span>
-            <span class="mt-0.5 text-xs text-gray-500">
-              $15 / month
-            </span>
+            <div class="flex items-center justify-between w-full mb-1">
+                <span class="text-sm font-bold {plan === 'monthly' ? 'text-rose-700' : 'text-gray-900'}">Monthly</span>
+                {#if plan === 'monthly'}
+                    <div class="h-4 w-4 rounded-full bg-rose-600 flex items-center justify-center">
+                        <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="4"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    </div>
+                {/if}
+            </div>
+            <span class="text-xs text-gray-500">$15 / mo</span>
           </button>
 
-          <!-- Lifetime -->
           <button
             type="button"
-            class="flex flex-col items-start justify-center rounded-md px-2 py-2 text-left transition-colors"
-            class:bg-white={plan === 'ltd'}
-            class:border={plan === 'ltd'}
-            class:border-gray-300={plan === 'ltd'}
+            class="relative flex flex-col items-start p-3 rounded-xl border-2 transition-all text-left
+            {plan === 'ltd' ? 'border-rose-600 bg-rose-50/30' : 'border-gray-200 hover:border-gray-300'}"
             on:click={() => (plan = 'ltd')}
           >
-            <span
-              class="inline-flex items-center gap-1 text-[11px] font-semibold"
-              class:text-primary={plan === 'ltd'}
-              class:text-gray-700={plan !== 'ltd'}
-            >
-              Lifetime deal
-              <span
-                class="text-[10px] rounded-full px-1.5 py-0.5 border border-amber-200 text-amber-700 bg-amber-50"
-                >Best value</span
-              >
-            </span>
-            <span class="mt-0.5 text-xs text-gray-500">
-              $65 one-time
-            </span>
+            <div class="absolute -top-2.5 right-2 px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-wide rounded-full shadow-sm">
+                Best Value
+            </div>
+            <div class="flex items-center justify-between w-full mb-1">
+                <span class="text-sm font-bold {plan === 'ltd' ? 'text-rose-700' : 'text-gray-900'}">Lifetime</span>
+                 {#if plan === 'ltd'}
+                    <div class="h-4 w-4 rounded-full bg-rose-600 flex items-center justify-center">
+                        <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="4"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    </div>
+                {/if}
+            </div>
+            <span class="text-xs text-gray-500">$65 one-time</span>
           </button>
-        </div>
       </div>
 
-      <!-- Features list -->
-      <div class="space-y-1.5 text-sm text-gray-800">
-        <p class="font-semibold text-gray-900 mb-1">Pro unlocks:</p>
-        <ul class="space-y-1.5 pl-4 list-disc marker:text-primary">
-          <li>
-            <strong>Real-time analysis</strong> (bypasses the 10-minute cache)
+      <div class="space-y-3">
+        <p class="text-xs font-bold uppercase tracking-wider text-gray-500">What's included:</p>
+        <ul class="space-y-2 text-sm text-gray-700">
+          <li class="flex items-start gap-2.5">
+            <svg class="w-5 h-5 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+            <span><strong>Real-time Analysis</strong> (No caching delays)</span>
           </li>
-          <li><strong>Multiple bio &amp; pinned tweet options</strong> based on your niche</li>
-          <li>
-            <strong>Content breakdown:</strong> best hooks, formats &amp; posting times
+          <li class="flex items-start gap-2.5">
+            <svg class="w-5 h-5 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+            <span><strong>3 Optimized Bio Drafts</strong> (Copy-paste ready)</span>
           </li>
-          <li>
-            <strong>Monetization score, packages &amp; suggested pricing</strong> ranges
+          <li class="flex items-start gap-2.5">
+            <svg class="w-5 h-5 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+            <span><strong>Monetization Roadmap</strong> & Sponsor Pricing</span>
           </li>
-          <li>Pitch email &amp; DM templates <strong>ready to send to brands</strong></li>
+           <li class="flex items-start gap-2.5">
+            <svg class="w-5 h-5 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+            <span><strong>Content Hooks & Email Templates</strong></span>
+          </li>
         </ul>
       </div>
     </div>
 
-    <!-- Footer actions -->
-    <div class="flex flex-col gap-2 border-t border-gray-200 px-5 sm:px-6 py-3 sm:py-4">
+    <div class="border-t border-gray-100 px-5 sm:px-6 py-4 bg-gray-50/50 rounded-b-xl">
       <button
-        class="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-soft hover:bg-gray-900 transition-colors"
+        class="w-full rounded-xl bg-rose-600 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-rose-500/30 hover:bg-rose-700 hover:shadow-rose-500/40 hover:-translate-y-0.5 transition-all"
         type="button"
         on:click={handleContinue}
       >
         {#if plan === 'monthly'}
-          Continue with Monthly
+          Start Monthly Plan ($15)
         {:else}
-          Continue with Lifetime Deal ($65)
+          Get Lifetime Access ($65)
         {/if}
       </button>
-      <div class="flex items-center justify-between">
-        <button
-          class="text-[10px] sm:text-xs text-gray-500 hover:text-gray-800"
-          type="button"
-          on:click={closeProModal}
-        >
-          Maybe later
-        </button>
-        <p class="text-[9px] sm:text-[10px] text-gray-400">
-          You&apos;ll choose payment method on the next step.
-        </p>
-      </div>
+      <p class="mt-3 text-center text-[10px] text-gray-400">
+        Secure payment via Stripe. 30-day money-back guarantee.
+      </p>
     </div>
   </div>
 </div>

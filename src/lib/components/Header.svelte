@@ -119,13 +119,7 @@
           on:click={() => showLogin = true}
         >
           Log in
-        </button>
-        <button
-          class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 transition-all"
-          on:click={() => showLogin = true}
-        >
-          Get Started
-        </button>
+      </button>
       {/if}
     </div>
   </div>
