@@ -3,16 +3,49 @@
 
   export let hasResult: boolean;
   export let openProModal: () => void;
+  export let isLoading: boolean = false;
+  export let analysisData: any = null;
+
 
   let activeTab: TabId = 'audit-free';
 
   function handleTabClick(tab: TabId) {
     activeTab = tab;
   }
+
+  $: formattedTime = analysisData?.timestamp
+    ? new Date(analysisData.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    : '';
+
 </script>
 
 <section class="mt-0 mx-auto max-w-5xl px-4 sm:px-6 lg:px-0">
-  <section class="mt-16 max-w-4xl mx-auto">
+
+  {#if isLoading}
+    <section class="mt-0 max-w-4xl mx-auto text-center">
+      <div
+        class="rounded-lg border-2 border-dashed border-gray-300 bg-white px-6 py-8 max-w-2xl mx-auto shadow-soft"
+      >
+        <div
+          class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-primary shadow-inner"
+        >
+          <svg class="h-5 w-5 animate-spin text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+        </div>
+        <p class="mt-4 text-lg font-semibold text-gray-900">
+          Analyzing profile...
+        </p>
+        <p class="mt-1 text-sm text-gray-600 max-w-md mx-auto">
+          Please wait, we're auditing the bio, pinned tweet, and last 20 posts...
+        </p>
+      </div>
+    </section>
+
+  {:else}
+
+  <section class="mt-0 max-w-4xl mx-auto">
     {#if !hasResult}
       <!-- Empty state -->
       <div
@@ -46,7 +79,21 @@
       </div>
     {/if}
 
-    {#if hasResult}
+    {#if hasResult && analysisData}
+    <div class="mt-0 rounded-lg bg-blue-50 border border-blue-200 p-4 text-center max-w-4xl mx-auto">
+      <p class="text-sm text-blue-800">
+        This report was generated at <strong class="font-semibold">{formattedTime}</strong>
+        (data is cached for 10 minutes).
+      </p>
+      <button
+        type="button"
+        class="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+        on:click={openProModal}
+      >
+        ✨ Upgrade to Pro to analyze real-time data
+      </button>
+    </div>
+
       <div class="mt-8 rounded-lg bg-white shadow-soft border border-gray-200">
         <!-- Tabs header -->
         <div class="mx-auto max-w-full">
@@ -124,7 +171,7 @@
                       <p class="mt-2 text-sm text-gray-900 text-left">
                         Based on your content, you are successfully reaching: <br />
                         <span class="font-bold text-primary">
-                          Early-stage SaaS Founders &amp; Indie Developers
+                          {analysisData.analysis.targetAudience}
                         </span
                         >.
                       </p>
@@ -134,10 +181,9 @@
                       class="flex items-center gap-4 text-sm bg-white p-3 rounded-lg border border-gray-200"
                     >
                       <p class="font-semibold text-gray-600">Avg. Engagement Rate:</p>
-                      <p class="text-lg font-extrabold text-gray-900">1.9%</p>
-                      <span class="text-xs text-emerald-500 font-semibold"
-                        >(Above avg. for niche)</span
-                      >
+                      <p class="text-lg font-extrabold text-gray-900">
+                        {analysisData.analysis.avgEngagementRate}%
+                      </p>
                     </div>
 
                     <div>
@@ -147,28 +193,28 @@
                           <div class="w-32 text-gray-600">Niche Clarity</div>
                           <div class="flex-1">
                             <div class="h-2 rounded-full bg-gray-200">
-                              <div class="h-2 w-3/4 rounded-full bg-primary"></div>
+                              <div class="h-2 rounded-full bg-primary" style="width: {analysisData.analysis.keyScores.nicheClarity}%"></div>
                             </div>
                           </div>
-                          <div class="w-10 text-right text-gray-900 font-semibold">78</div>
+                          <div class="w-10 text-right text-gray-900 font-semibold">{analysisData.analysis.keyScores.nicheClarity}</div>
                         </div>
                         <div class="flex items-center gap-3">
                           <div class="w-32 text-gray-600">Offer Clarity</div>
                           <div class="flex-1">
                             <div class="h-2 rounded-full bg-gray-200">
-                              <div class="h-2 w-1/2 rounded-full bg-primary"></div>
+                              <div class="h-2 rounded-full bg-primary" style="width: {analysisData.analysis.keyScores.offerClarity}%"></div>
                             </div>
                           </div>
-                          <div class="w-10 text-right text-gray-900 font-semibold">52</div>
+                          <div class="w-10 text-right text-gray-900 font-semibold">{analysisData.analysis.keyScores.offerClarity}</div>
                         </div>
                         <div class="flex items-center gap-3">
                           <div class="w-32 text-gray-600">Monetization Readiness</div>
                           <div class="flex-1">
                             <div class="h-2 rounded-full bg-gray-200">
-                              <div class="h-2 w-2/5 rounded-full bg-primary"></div>
+                              <div class="h-2 rounded-full bg-primary" style="width: {analysisData.analysis.keyScores.monetization}%"></div>
                             </div>
                           </div>
-                          <div class="w-10 text-right text-gray-900 font-semibold">41</div>
+                          <div class="w-10 text-right text-gray-900 font-semibold">{analysisData.analysis.keyScores.monetization}</div>
                         </div>
                       </div>
                     </div>
@@ -186,11 +232,9 @@
                         <ul
                           class="mt-2 space-y-1.5 list-disc pl-5 text-sm text-rose-800 marker:text-rose-500"
                         >
-                          <li>Bio doesn’t clearly say who you help or what they get.</li>
-                          <li>Pinned tweet isn’t a clear “start here” for new people.</li>
-                          <li>
-                            Timeline mixes too many topics; hard to know why to follow.
-                          </li>
+                            {#each analysisData.analysis.leaks as leak}
+                              <li>{leak}</li>
+                            {/each}
                         </ul>
                       </div>
                       <div
@@ -202,20 +246,9 @@
                         <ul
                           class="mt-2 space-y-1.5 list-disc pl-5 text-sm text-emerald-800 marker:text-emerald-500"
                         >
-                          <li>
-                            Rewrite bio into: who you are → who you help → what they get.
-                          </li>
-                          <li>
-                            Turn pinned tweet into a simple “start here” + 2–3 key links.
-                          </li>
-                          <li>
-                            Anchor content around 2–3 themes (e.g. “build logs”, “numbers”,
-                            “playbooks”).
-                          </li>
-                          <li>
-                            Post more often between <strong>18:00–20:00 UTC</strong> (your
-                            current best window).
-                          </li>
+                            {#each analysisData.analysis.tips as tip}
+                              <li>{tip}</li>
+                            {/each}
                         </ul>
                       </div>
                     </div>
@@ -446,4 +479,7 @@
       </div>
     {/if}
   </section>
+
+  {/if}
+
 </section>

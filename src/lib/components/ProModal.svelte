@@ -118,6 +118,9 @@
       <div class="space-y-1.5 text-sm text-gray-800">
         <p class="font-semibold text-gray-900 mb-1">Pro unlocks:</p>
         <ul class="space-y-1.5 pl-4 list-disc marker:text-primary">
+          <li>
+            <strong>Real-time analysis</strong> (bypasses the 10-minute cache)
+          </li>
           <li><strong>Multiple bio &amp; pinned tweet options</strong> based on your niche</li>
           <li>
             <strong>Content breakdown:</strong> best hooks, formats &amp; posting times

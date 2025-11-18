@@ -3,7 +3,7 @@
   export let onAnalyze: () => void;
 </script>
 
-<section class="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-0 lg:py-16">
+<section class="mx-auto max-w-5xl px-4 pt-12 pb-6 sm:px-6 lg:px-0">
   <div class="max-w-3xl mx-auto text-center space-y-7">
     <div
       class="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-white px-3 py-1 text-xs text-primary font-medium shadow-sm"
@@ -47,6 +47,10 @@
           Analyze profile
         </button>
       </div>
+
+      <p class="text-center text-[11px] text-gray-500">
+        ℹ️ Free reports are cached for 10 minutes.
+      </p>
 
       <div class="flex flex-wrap items-center justify-center gap-4 text-xs text-gray-500 pt-1">
         <div class="inline-flex items-center gap-1.5">
