@@ -146,6 +146,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         // 5. Tính điểm Deterministic (Logic cứng)
         const scoring = calculateDeterministicScore(checklist, apiChecks);
 
+        console.log(scoring);
+
         // 6. Đóng gói kết quả cuối cùng
         const finalResult = {
             timestamp: Date.now(),

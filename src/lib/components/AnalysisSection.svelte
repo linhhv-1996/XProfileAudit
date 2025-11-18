@@ -190,7 +190,7 @@
                       <div class="flex items-center justify-between mb-2">
                         <p class="text-sm font-semibold text-gray-800">Key Scores (0–100)</p>
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary text-white">
-                          Overall: {analysisData.analysis.overallScore}/100
+                          Overall: {analysisData.analysis.totalScore}/100
                         </span>
                       </div>
                       <div class="mt-4 space-y-3 text-xs">

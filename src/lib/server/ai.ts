@@ -55,7 +55,32 @@ CRITERIA FOR "TRUE" (Strict assessment):
 
 OUTPUT RULES:
 - "targetAudience": A short English phrase (e.g., "SaaS Founders & Indie Hackers").
-- Return ONLY the JSON structure matching the AuditChecklist interface.
+
+IMPORTANT: You MUST return the result in this EXACT nested JSON structure. Do not flatten it.
+
+{
+  "targetAudience": "Short description string",
+  "niche": {
+    "bioHasKeywords": boolean,
+    "bioShowsAuthority": boolean,
+    "profilePhotoProfessional": boolean
+  },
+  "content": {
+    "tweetsMatchBio": boolean,
+    "usesFormatting": boolean,
+    "engagesAudience": boolean
+  },
+  "offer": {
+    "bioClearProblemSolution": boolean,
+    "pinnedTweetRelatesToBio": boolean,
+    "pinnedTweetHasSocialProof": boolean
+  },
+  "monetization": {
+    "hasLeadMagnet": boolean,
+    "pinnedTweetHasCTA": boolean,
+    "urgencyOrScarcity": boolean
+  }
+}
 `;
 
 export async function getAuditChecklist(payload: any): Promise<AuditChecklist> {
@@ -72,6 +97,8 @@ export async function getAuditChecklist(payload: any): Promise<AuditChecklist> {
 
     const content = completion.choices[0]?.message?.content;
     if (!content) throw new Error('Empty response from AI');
+
+    console.log(JSON.parse(content) as AuditChecklist);
 
     return JSON.parse(content) as AuditChecklist;
   } catch (e: any) {

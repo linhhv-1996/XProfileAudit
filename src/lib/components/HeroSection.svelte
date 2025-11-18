@@ -13,12 +13,11 @@
 
     <div class="space-y-4">
       <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl lg:text-5xl">
-        Turn your X profile into a high-converting, growth-ready asset.
+        Turn your X profile into a high-converting, growth-ready channel.
       </h1>
       <p class="text-base sm:text-lg leading-relaxed text-gray-600 max-w-xl mx-auto">
-        Paste your handle, we read your bio &amp; last 20 posts, then return a clear
-        <strong>audit</strong>, <strong>fixed copy</strong> and
-        <strong>growth &amp; monetization tips</strong>.
+        Paste your handle. Our <strong>AI Analyst</strong> reads your bio & last 20 posts to return a clear
+        <strong>audit</strong>, <strong>optimized copy</strong>, and <strong>monetization plan</strong> in seconds.
       </p>
     </div>
 

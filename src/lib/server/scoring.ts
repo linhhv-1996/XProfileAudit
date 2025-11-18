@@ -44,6 +44,9 @@ export function calculateDeterministicScore(
       tips.push("Consider X Premium to boost algorithmic reach and instant trust.");
   }
 
+  console.log("Scoring")
+  console.log(check)
+
   if (check.niche.bioHasKeywords) nicheScore += 10;
   else {
     leaks.push("Bio is invisible to Search (Missing keywords).");
@@ -117,8 +120,8 @@ export function calculateDeterministicScore(
 
   return {
     totalScore,
-    leaks,
-    tips: tips.slice(0, 5),
+    leaks: leaks.slice(0, 5),
+    tips: tips.slice(0, 3),
     breakdown: {
       niche: nicheScore,
       content: contentScore,
