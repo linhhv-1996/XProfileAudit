@@ -24,6 +24,21 @@
   let proFixesData: ProFixesResult | undefined = undefined;
   let proMonetizationData: MonetizationKit | undefined = undefined;
 
+  let lastProHandle: string | undefined = undefined;
+
+  $: {
+      if (analysisData) {
+          const currentHandle = handle.toLowerCase();
+          if (lastProHandle !== currentHandle) {
+              proDataLoaded = false;
+              proFixesData = undefined;
+              proMonetizationData = undefined;
+              lastProHandle = undefined;
+              console.log(`[AnalysisSection] Handle changed to ${currentHandle}. Resetting Pro data.`);
+          }
+      }
+  }
+
   let activeTab: TabId = "audit-free";
 
   function handleRegenerate() {
@@ -61,6 +76,8 @@
       proFixesData = data.fixesGrowth;
       proMonetizationData = data.monetizationKit;
       proDataLoaded = true;
+
+      lastProHandle = handle.toLowerCase();
 
       if (data.isCached) {
         addToast("Loaded Pro report from cache.", "info");
