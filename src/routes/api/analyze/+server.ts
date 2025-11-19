@@ -7,6 +7,8 @@ import { calculateDeterministicScore, type ApiChecks } from '$lib/server/scoring
 import { getCache, setCache } from '$lib/server/cache';
 import { getUserProfile } from '$lib/server/users';
 
+import { logToFile } from '$lib/server/dev';
+
 const API_HOST = 'twitter241.p.rapidapi.com';
 
 /**
@@ -122,16 +124,18 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
         // 2. Chuẩn bị Payload cho AI (Lấy 10 tweet text để tiết kiệm token)
         const recentTweetTexts = regularTweets
-            .map((t: any) => t.legacy?.full_text || "")
-            .filter((t: string) => !t.startsWith("RT @")) // Bỏ qua Retweet
-            .slice(0, 10);
+            .map((t: any) => t.legacy?.full_text || t?.tweet?.legacy?.full_text || "")
+            .filter((t: string) => !t.startsWith("RT @"))
+            .slice(0, 20);
 
         const aiPayload = {
             bio: profileData.description || "",
-            pinned_text: pinnedTweet?.legacy?.full_text || "",
+            pinned_text: pinnedTweet?.legacy?.full_text || pinnedTweet?.tweet?.legacy?.full_text || "",
             recent_tweets: recentTweetTexts,
             follower_count: profileData.followers_count
         };
+
+        logToFile("payload.log", aiPayload);
 
         // 3. Gọi AI lấy Checklist (True/False)
         const checklist = await getAuditChecklist(aiPayload);
