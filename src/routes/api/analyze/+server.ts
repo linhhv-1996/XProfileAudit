@@ -45,7 +45,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     }
 
     const uid = locals.user.uid;
-    const { handle } = await request.json();
+    const { handle: rawHandle } = await request.json();
+    const handle = rawHandle.toLowerCase();
 
     if (!handle) {
         return json({ error: 'Handle is required' }, { status: 400 });

@@ -117,7 +117,7 @@
   <main class="flex-1">
     <HeroSection bind:handle {onAnalyze} />
     
-    <AnalysisSection {hasResult} {openProModal} {analysisData} {isLoading} />
+    <AnalysisSection {hasResult} {openProModal} {analysisData} {isLoading} {handle} />
     
     <FAQSection />
   </main>
