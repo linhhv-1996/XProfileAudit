@@ -15,7 +15,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     }
 
     const uid = locals.user.uid;
-    const { handle: rawHandle } = await request.json();
+    const { handle: rawHandle, regenerate } = await request.json();
     const handle = rawHandle.toLowerCase();
 
     const dbUser = await getUserProfile(uid);
@@ -26,10 +26,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     }
     
     // 2. Check Cache
-    const cachedProData = await getCache(`pro_data:${handle}`);
-    if (cachedProData) {
-        console.log(`[PRO GENERATION] Loaded cached Pro data for: ${handle}`);
-        return json({ ...cachedProData, isCached: true });
+    if (!regenerate) { 
+        const cachedProData = await getCache(`pro_data:${handle}`);
+        if (cachedProData) {
+            console.log(`[PRO GENERATION] Loaded cached Pro data for: ${handle}`);
+            return json({ ...cachedProData, isCached: true });
+        }
     }
 
     // 3. Load Context Data (Đã được cache bởi /api/analyze)

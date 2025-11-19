@@ -1,6 +1,7 @@
 <script lang="ts">
   export let handle: string;
   export let onAnalyze: () => void;
+  export let isLoading: boolean;
 </script>
 
 <section class="mx-auto max-w-5xl px-4 pt-12 pb-6 sm:px-6 lg:px-0">
@@ -40,10 +41,18 @@
         </div>
         <button
           type="button"
-          class="inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-soft hover:bg-gray-900 transition-colors whitespace-nowrap"
+          class="inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-soft hover:bg-gray-900 transition-colors whitespace-nowrap disabled:opacity-70 disabled:cursor-not-allowed"
           on:click={onAnalyze}
-        >
-          Analyze profile
+          disabled={isLoading} >
+          {#if isLoading}
+            <svg class="animate-spin h-5 w-5 text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+            Analyzing...
+          {:else}
+            Analyze profile
+          {/if}
         </button>
       </div>
 

@@ -50,25 +50,29 @@ CRITERIA:
     - Draft 3: Focus on **Problem/Solution** and a clear mechanism (The Problem Solver).
 2. PINNED TWEET DRAFT: MUST include strong Social Proof (if possible) and a clear Call-To-Action (CTA). ${pinnedTweetPrompt}
 3. CONTENT HOOK & FORMAT: Analyze the recent tweets to identify the most common/effective content theme/format.
-4. NEXT TWEET IDEAS (5 ideas): Generate 5 concise, actionable ideas for the user's next 5 tweets, strictly relevant to their niche.
+    - contentHook: Must be a memorable name for the strategy.
+    - contentHookExample: MUST be the exact, single sentence or first-line hook of a successful recent tweet that best exemplifies the winning strategy. [NEW/FIX]
+    - contentFormat: Must be a clear description of the winning format AND include a specific structure or cadence (e.g., "A 5-tweet thread posted every Tuesday focusing on a single, tactical 'How-to' guide."). [FIX: More specific]
+4. NEXT TWEET IDEAS (5 ideas): Generate 5 HIGHLY SPECIFIC, slightly controversial, or highly actionable ideas. Each idea must be a full, descriptive concept, not just a topic. [FIX: Less rudimentary]
 
 INPUT: JSON object containing profile data, niche, and recent tweet texts.
 OUTPUT: MUST be a JSON object with this exact structure:
 
 {
-  "contentHook": "Short, memorable framework name (e.g., The 'Proof & Prediction' Framework)",
-  "highestImpactCount": number, // Estimate based on the number of non-generic, high-value tweets in the last 20 (between 3 and 10)
+  "contentHook": "Short, memorable framework name",
+  "contentHookExample": "The exact hook sentence from a top performing tweet.", // <--- NEW FIELD
+  "highestImpactCount": number, 
   "bioDrafts": [
     { "title": "Bio Draft 1 (The Authority)", "content": "Generated copy here" },
     { "title": "Bio Draft 2 (The Builder)", "content": "Generated copy here" },
     { "title": "Bio Draft 3 (The Problem Solver)", "content": "Generated copy here" }
   ],
-  "contentFormat": "Description of the best-performing format (e.g., Short-form threads (5-7 tweets) focused on a single tactical problem.)",
-  "formatPercentage": number, // Estimated percentage (between 60 and 95)
+  "contentFormat": "Detailed description of winning format and structure.",
+  "formatPercentage": number, 
   "pinnedTweetCopy": "The full, optimized pinned tweet copy with emojis and line breaks (keep it under 280 characters).",
   "nextTweetIdeas": ["Idea 1", "Idea 2", "Idea 3", "Idea 4", "Idea 5"]
 }
-`
+`;
 };
 
 interface ProPayload {

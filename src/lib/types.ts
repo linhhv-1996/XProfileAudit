@@ -8,6 +8,7 @@ export interface BioDraft {
 
 export interface ProFixesResult {
   contentHook: string;
+  contentHookExample: string;
   highestImpactCount: number;
   bioDrafts: BioDraft[];
   contentFormat: string;

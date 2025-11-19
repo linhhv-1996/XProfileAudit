@@ -1,9 +1,13 @@
---- LOG TIME: 2025-11-19T11:16:56.489Z ---
+--- LOG TIME: 2025-11-19T14:09:53.813Z ---
 
 {
   bio: 'Building my next AI tool to $5k MRR in public. Daily code, tech choices, small wins & lessons. Zero fluff. Follow the journey or miss the playbook 👇',
   pinned_text: '',
   recent_tweets: [
+    "I'm currently working on the Copy &amp; Growth strategy for the X Profile Booster tool. Hmm, it's not looking too great, guys, lol. https://t.co/Sb91GCR5t6",
+    'Finally debugged the code and re-ran the test.\n' +
+      '60 points! Much more believable, lol.\n' +
+      'The X Profile Booster MVP will drop this weekend for everyone to try. https://t.co/j93aM2rMvJ',
     'X Profile Booster scored me an 85? Hmm, skeptical. Needs a reality check. Even AI is buttering me up now, lol. 😂 https://t.co/CUHNgp6iFp',
     'Stop leaking money on X! 🛑\n' +
       '\n' +
@@ -65,8 +69,7 @@
       '- 1. Create an account with a FEMALE name and gender. \n' +
       '- 2. Get a really pretty avatar. \n' +
       '\n' +
-      "THAT'S IT 🤣🤣",
-    'Hmm. When will I finally hit 5M, guys? 😅 https://t.co/sqiRQkPlP0'
+      "THAT'S IT 🤣🤣"
   ],
-  follower_count: 2164
+  follower_count: 2166
 }

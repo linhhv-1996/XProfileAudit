@@ -115,7 +115,7 @@
   <Header {openProModal} {user} />
 
   <main class="flex-1">
-    <HeroSection bind:handle {onAnalyze} />
+    <HeroSection bind:handle {onAnalyze} {isLoading}/>
     
     <AnalysisSection {hasResult} {openProModal} {analysisData} {isLoading} {handle} />
     
