@@ -19,24 +19,26 @@
 
   $: user = $page.data.user;
 
-  // Pro Data State (Giữ nguyên)
+  // --- STATE QUẢN LÝ DỮ LIỆU PRO ---
   let proDataLoaded = false;
   let isProDataLoading = false;
   let proFixesData: ProFixesResult | undefined = undefined;
   let proMonetizationData: MonetizationKit | undefined = undefined;
 
-  let lastProHandle: string | undefined = undefined;
+  // Biến để theo dõi phiên phân tích cuối cùng
+  let lastAnalysisTimestamp: number | undefined = undefined;
 
-  $: {
-      if (analysisData) {
-          const currentHandle = handle.toLowerCase();
-          if (lastProHandle !== currentHandle) {
-              proDataLoaded = false;
-              proFixesData = undefined;
-              proMonetizationData = undefined;
-              lastProHandle = undefined;
-              console.log(`[AnalysisSection] Handle changed to ${currentHandle}. Resetting Pro data.`);
-          }
+  // [FIX QUAN TRỌNG]: Reset Pro Data mỗi khi có kết quả Audit mới (dựa vào timestamp)
+  $: if (analysisData && analysisData.timestamp !== lastAnalysisTimestamp) {
+      console.log("[AnalysisSection] New analysis detected. Resetting Pro Data.");
+      proDataLoaded = false;
+      proFixesData = undefined;
+      proMonetizationData = undefined;
+      lastAnalysisTimestamp = analysisData.timestamp;
+      
+      // Nếu user đang đứng ở tab Pro, tự động load lại luôn cho mượt
+      if (user?.isPro && (activeTab === 'fixes-growth' || activeTab === 'monetization-kit')) {
+          fetchProData(handle);
       }
   }
 
@@ -55,17 +57,29 @@
     if (isProDataLoading) return;
     if (!user?.isPro) return;
 
+    // Nếu đã có data và không yêu cầu tạo lại -> Giữ nguyên (Cache Client)
     if (proDataLoaded && !regenerate) {
         return;
     }
 
     isProDataLoading = true;
-    addToast("Generating Pro report...", "info");
+    if(regenerate) addToast("Regenerating Pro report...", "info");
+    
     try {
+      // --- LẤY DATA TỪ KẾT QUẢ AUDIT HIỆN TẠI ĐỂ TRUYỀN VÀO ---
+      // Đảm bảo AI sửa đúng cái đang hiển thị
+      const currentLeaks = analysisData?.analysis?.leaks || [];
+      const userProfile = analysisData?.profile || {}; 
+
       const response = await fetch("/api/generate-pro-content", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ handle: handle.toLowerCase(), regenerate }),
+        body: JSON.stringify({ 
+            handle: handle.toLowerCase(), 
+            regenerate,
+            auditLeaks: currentLeaks, // Truyền danh sách lỗi
+            profile: userProfile      // Truyền info user (Name, Bio...)
+        }),
       });
 
       if (!response.ok) {
@@ -78,12 +92,10 @@
       proMonetizationData = data.monetizationKit;
       proDataLoaded = true;
 
-      lastProHandle = handle.toLowerCase();
-
       if (data.isCached) {
         addToast("Loaded Pro report from cache.", "info");
       } else {
-        addToast("Pro report generated successfully!", "success");
+        addToast("Pro strategy generated!", "success");
       }
     } catch (error: any) {
       console.error(error);
@@ -95,6 +107,7 @@
 
   function handleTabClick(tab: TabId) {
     activeTab = tab;
+    // Chỉ gọi API khi vào tab Pro và User là Pro
     if (user?.isPro && (tab === "fixes-growth" || tab === "monetization-kit")) {
       fetchProData(handle);
     }
@@ -106,7 +119,7 @@
         minute: "2-digit",
       })
     : "";
-
+    
   $: displayFixesData = proFixesData;
   $: displayMonetizationData = proMonetizationData;
 </script>
@@ -124,20 +137,19 @@
         <ProfileCard 
            profile={analysisData.profile} 
            totalScore={analysisData.analysis.totalScore} 
-        />
+         />
 
         {#if !user?.isPro}
           <div class="mt-0 rounded-lg bg-blue-50 border border-blue-200 p-4 text-center max-w-4xl mx-auto">
             <p class="text-sm text-blue-800">
-              This report was generated at <strong class="font-semibold">{formattedTime}</strong>
-              (data is cached for 10 minutes).
+              Report generated at <strong class="font-semibold">{formattedTime}</strong>.
             </p>
             <button
               type="button"
               class="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
               on:click={openProModal}
             >
-              ✨ Upgrade to Pro to analyze real-time data
+              ✨ Upgrade to Pro to unlock personalized Growth Kit
             </button>
           </div>
         {/if}

@@ -9,13 +9,13 @@ import { getUserProfile } from '$lib/server/users';
 const PRO_DATA_TTL = 30 * 60;
 
 export const POST: RequestHandler = async ({ request, locals }) => {
-    // 1. Check Auth & Pro Status
     if (!locals.user) {
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const uid = locals.user.uid;
-    const { handle: rawHandle, regenerate } = await request.json();
+    // NHẬN PROFILE & AUDIT LEAKS TỪ CLIENT GỬI LÊN
+    const { handle: rawHandle, regenerate, auditLeaks, profile } = await request.json();
     const handle = rawHandle.toLowerCase();
 
     const dbUser = await getUserProfile(uid);
@@ -25,7 +25,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         return json({ error: 'Forbidden: Pro access required' }, { status: 403 });
     }
     
-    // 2. Check Cache
+    // 2. Check Cache (Nếu không regenerate)
     if (!regenerate) { 
         const cachedProData = await getCache(`pro_data:${handle}`);
         if (cachedProData) {
@@ -34,35 +34,39 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         }
     }
 
-    // 3. Load Context Data (Đã được cache bởi /api/analyze)
+    // 3. Load Context Data (Tweets vẫn lấy từ cache server để đỡ nặng payload)
     const contextData: any = await getCache(`user_data:${handle}`);
+    
+    // Nếu mất cache Tweets thì buộc phải báo lỗi (vì Client không gửi tweets lên)
     if (!contextData) {
         return json({ error: 'Context data missing. Run audit first.' }, { status: 400 });
     }
 
     try {
         console.log(`[PRO GENERATION] Running NEW AI generation for: ${handle}`);
-        
+
         // --- PRO GENERATION LOGIC ---
         const proPayload = {
-            bio: contextData.profile.description || "", 
+            bio: profile?.description || contextData.profile.description || "", 
             pinnedTweetText: contextData.pinnedTweetText,
             recentTweetsText: contextData.recentTweetsText,
             niche: contextData.niche, 
-            apiChecks: contextData.apiChecks
+            apiChecks: contextData.apiChecks,
+            auditLeaks: auditLeaks || [],
+            profile: profile || contextData.profile
         };
         
-        // Goị AI để tạo Copy & Growth Fixes (Tab 2)
+        // Goị AI để tạo Copy & Growth Fixes
         const fixesGrowth = await generateProFixes(proPayload);
         
-        // Logic Monetization Kit (Tab 3) - Cần tái tạo để giữ logic on-demand
-        const followers = contextData.profile.followers_count;
-        const avgEr = contextData.avgEngagementRate; // Lấy từ cache context
+        // Logic Monetization Kit
+        const followers = proPayload.profile?.followers_count || 0;
+        const avgEr = contextData.avgEngagementRate || 1.5;
 
         let projectedValue = 300; 
         if (followers > 5000) projectedValue = 500;
         if (followers > 10000) projectedValue = 800;
-        if (avgEr && avgEr > 2.5) projectedValue *= 1.2;
+        if (avgEr > 2.5) projectedValue *= 1.2;
 
         const roundToFifty = (value: number) => Math.round(value / 50) * 50;
 
@@ -73,7 +77,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
                 { name: 'Pinned Thread', price: `$${roundToFifty(projectedValue * 1.5)}`, description: '1 thread (3-5 tweets) pinned for 3 days' },
                 { name: 'Full Campaign', price: `$${roundToFifty(projectedValue * 3)}`, description: '3 posts and 1 Bio mention over 1 week' },
             ],
-            pitchEmailSnippet: `Hi [Brand Contact], I saw your recent launch and noticed a huge synergy with my audience (${contextData.niche}, ${avgEr}% ER). I have a 3-tier package perfect for driving MQLs...`
+            pitchEmailSnippet: `Hi [Brand Contact], I saw your recent launch. My audience (${contextData.niche}, ${avgEr}% ER) responds well to authentic storytelling. I have a 3-tier package perfect for driving MQLs...`
         }
         
         const proData = { fixesGrowth, monetizationKit };

@@ -1,7 +1,6 @@
-// src/lib/server/pro-ai.ts
+// src/lib/server/proAI.ts
 import Groq from 'groq-sdk';
 import { GROQ_API_KEY } from '$env/static/private';
-import { logToFile } from './dev';
 import type { ApiChecks } from './scoring';
 
 const groq = new Groq({ apiKey: GROQ_API_KEY });
@@ -11,16 +10,24 @@ const groq = new Groq({ apiKey: GROQ_API_KEY });
 export interface BioDraft {
   title: string;
   content: string;
+  rationale: string; 
+}
+
+export interface WeeklyPostIdea {
+    day: string;    
+    theme: string;  
+    content: string; // Đây sẽ là nội dung Tweet Draft thực tế
 }
 
 export interface ProFixesResult {
   contentHook: string;
+  contentHookExample: string;
   highestImpactCount: number;
   bioDrafts: BioDraft[];
   contentFormat: string;
   formatPercentage: number;
   pinnedTweetCopy: string;
-  nextTweetIdeas: string[];
+  weeklyContentPlan: WeeklyPostIdea[];
 }
 
 export interface MonetizationKit {
@@ -29,48 +36,80 @@ export interface MonetizationKit {
     pitchEmailSnippet: string;
 }
 
-// --- SYSTEM PROMPT: COPY & GROWTH FIXES ---
+// --- SYSTEM PROMPT (HARDCORE INDIE HACKER MODE) ---
 
-const PRO_FIXES_SYSTEM_PROMPT = (pinnedText: string, hasPinned: boolean) => {
+const PRO_FIXES_SYSTEM_PROMPT = (profile: any, pinnedText: string, hasPinned: boolean, auditLeaks: string[] = []) => {
+    
+    const name = profile?.name || "Creator";
+    const followers = profile?.followers_count || 0;
+    // Lấy mô tả ngắn gọn về người dùng để AI hiểu context
+    const userContext = `User: ${name}, Followers: ${followers}, Description: ${profile?.description}`;
+
+    const auditContext = auditLeaks.length > 0 
+        ? `\n❌ CRITICAL AUDIT MISTAKES TO FIX:\n- ${auditLeaks.join('\n- ')}\n`
+        : "";
+
     let pinnedTweetPrompt = "";
     if (hasPinned) {
-        pinnedTweetPrompt = `\n- OPTIMIZE the CURRENT Pinned Tweet (Current Pinned Tweet: "${pinnedText}").`;
+        pinnedTweetPrompt = `\n- REWRITE the Pinned Tweet. Do NOT just copy it. Use the AIDA framework (Attention, Interest, Desire, Action). Make it punchy. Break up text blocks. Current: "${pinnedText}"`;
     } else {
-        pinnedTweetPrompt = `\n- CREATE a NEW Pinned Tweet Draft (The user currently has NO pinned tweet).`;
+        pinnedTweetPrompt = `\n- WRITE a Pinned Tweet from scratch. Focus on: Who I am, What I'm building, and Why you should follow.`;
     }
 
     return `
-You are an elite X (Twitter) Copywriter, specializing in high-converting profiles.
-Your task is to generate copy-paste ready content based on the provided profile data, niche, and content style.
+You are a veteran Indie Hacker & Ghostwriter. You hate corporate fluff. You love raw metrics, building in public, and authenticity.
+You are fixing the profile of: ${userContext}
 
-CRITERIA:
-1. BIO DRAFTS (3 variations): All drafts must be less than 160 characters.
-    - Draft 1: Focus on **Authority/Social Proof** and clear value proposition (The Authority).
-    - Draft 2: Focus on **Building in Public/Journey** and engagement (The Builder).
-    - Draft 3: Focus on **Problem/Solution** and a clear mechanism (The Problem Solver).
-2. PINNED TWEET DRAFT: MUST include strong Social Proof (if possible) and a clear Call-To-Action (CTA). ${pinnedTweetPrompt}
-3. CONTENT HOOK & FORMAT: Analyze the recent tweets to identify the most common/effective content theme/format.
-    - contentHook: Must be a memorable name for the strategy.
-    - contentHookExample: MUST be the exact, single sentence or first-line hook of a successful recent tweet that best exemplifies the winning strategy. [NEW/FIX]
-    - contentFormat: Must be a clear description of the winning format AND include a specific structure or cadence (e.g., "A 5-tweet thread posted every Tuesday focusing on a single, tactical 'How-to' guide."). [FIX: More specific]
-4. NEXT TWEET IDEAS (5 ideas): Generate 5 HIGHLY SPECIFIC, slightly controversial, or highly actionable ideas. Each idea must be a full, descriptive concept, not just a topic. [FIX: Less rudimentary]
+${auditContext}
 
-INPUT: JSON object containing profile data, niche, and recent tweet texts.
-OUTPUT: MUST be a JSON object with this exact structure:
+--- STRICT RULES ---
+1. **NO HALLUCINATIONS**: NEVER invent numbers (like revenue, user count) that are not in the input. If unknown, use placeholders like "[X] users".
+2. **NO CORPORATE SPEAK**: Don't use words like "synergy", "thrilled", "webinar", "unleash". Speak like a human builder.
+3. **FIX THE LEAKS**: Your suggestions must directly address the Audit Mistakes listed above.
 
+--- TASKS ---
+
+1. BIO OPTIMIZATION (3 Variants):
+   - Draft 1 (Authority): Focus on specific numbers found in input (years exp, followers, revenue). If no numbers, focus on specific tech stack/niche.
+   - Draft 2 (The Builder): "Building X to $Y". Raw and honest.
+   - Draft 3 (The Value Prop): "Helping [Audience] achieve [Result] via [Mechanism]".
+   - *Rationale*: Explain WHY this fixes a specific leak.
+
+2. PINNED TWEET REWRITE:
+   ${pinnedTweetPrompt}
+   - Must include a clear CTA (Call to Action).
+
+3. WINNING PATTERN:
+   - Identify their best Hook style & Format from recent tweets.
+   - *contentHookExample*: Copy the EXACT best sentence from input.
+
+4. WEEKLY CONTENT PLAN (5 ACTUAL TWEETS):
+   - Do NOT write "Idea: Share a story". 
+   - **WRITE THE ACTUAL TWEET DRAFT**.
+   - Mondy: Motivation/Mistake.
+   - Tuesday: Value/How-to.
+   - Wednesday: Build in Public update (screenshot implied).
+   - Thursday: Authority/Opinion.
+   - Friday: Soft Sell/Offer.
+
+OUTPUT JSON FORMAT:
 {
-  "contentHook": "Short, memorable framework name",
-  "contentHookExample": "The exact hook sentence from a top performing tweet.", // <--- NEW FIELD
+  "contentHook": "Name of strategy (e.g. 'The Vulnerable Founder')",
+  "contentHookExample": "Exact quote from input",
   "highestImpactCount": number, 
   "bioDrafts": [
-    { "title": "Bio Draft 1 (The Authority)", "content": "Generated copy here" },
-    { "title": "Bio Draft 2 (The Builder)", "content": "Generated copy here" },
-    { "title": "Bio Draft 3 (The Problem Solver)", "content": "Generated copy here" }
+    { "title": "The Authority", "content": "Bio text...", "rationale": "Fixes 'Zero Authority' by..." },
+    { "title": "The Builder", "content": "Bio text...", "rationale": "..." },
+    { "title": "The Problem Solver", "content": "Bio text...", "rationale": "..." }
   ],
-  "contentFormat": "Detailed description of winning format and structure.",
+  "contentFormat": "e.g. 'Short threads (3 tweets) with a visual hook.'",
   "formatPercentage": number, 
-  "pinnedTweetCopy": "The full, optimized pinned tweet copy with emojis and line breaks (keep it under 280 characters).",
-  "nextTweetIdeas": ["Idea 1", "Idea 2", "Idea 3", "Idea 4", "Idea 5"]
+  "pinnedTweetCopy": "Full tweet text with emojis...",
+  "weeklyContentPlan": [
+      { "day": "Monday", "theme": "Mistake", "content": "I lost 3 weeks of dev time doing [Mistake].\\n\\nHere is what I learned..." },
+      { "day": "Tuesday", "theme": "Value", "content": "Stop using [Common Tool].\\n\\nUse [Alternative] instead if you want speed..." },
+      // ... 5 days total. CONTENT MUST BE A READY-TO-POST TWEET.
+  ]
 }
 `;
 };
@@ -81,20 +120,28 @@ interface ProPayload {
     recentTweetsText: string[];
     niche: string;
     apiChecks: ApiChecks;
+    auditLeaks?: string[]; 
+    profile?: any; 
 }
 
 export async function generateProFixes(payload: ProPayload): Promise<ProFixesResult> {
-  const systemPrompt = PRO_FIXES_SYSTEM_PROMPT(payload.pinnedTweetText || "", payload.apiChecks.hasPinned);
+  // Truyền profile + leaks vào prompt
+  const systemPrompt = PRO_FIXES_SYSTEM_PROMPT(
+      payload.profile || {},
+      payload.pinnedTweetText || "", 
+      payload.apiChecks.hasPinned,
+      payload.auditLeaks
+  );
   
   const minimalPayload = {
+      // Chỉ gửi những thứ cần thiết để tiết kiệm token và tránh nhiễu
       bio: payload.bio,
       pinned_text: payload.pinnedTweetText,
-      recent_tweets: payload.recentTweetsText,
+      // Lấy 10 tweet tốt nhất thay vì 20 để AI tập trung hơn
+      recent_tweets: payload.recentTweetsText.slice(0, 10), 
       niche: payload.niche
   };
   
-//   logToFile("pro_fixes_payload.log", minimalPayload);
-
   try {
     const completion = await groq.chat.completions.create({
         model: 'llama-3.1-8b-instant', 
@@ -103,7 +150,8 @@ export async function generateProFixes(payload: ProPayload): Promise<ProFixesRes
             { role: 'user', content: JSON.stringify(minimalPayload) }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.8,
+        // Giảm nhiệt độ xuống để AI bớt "sáng tạo" lung tung (bịa số liệu)
+        temperature: 0.5, 
     });
 
     const content = completion.choices[0]?.message?.content;
@@ -111,27 +159,32 @@ export async function generateProFixes(payload: ProPayload): Promise<ProFixesRes
 
     const result = JSON.parse(content) as ProFixesResult;
     
-    // Đảm bảo các giá trị số là number (phòng trường hợp AI trả về string)
+    // Data validation
     result.highestImpactCount = Number(result.highestImpactCount || 5);
     result.formatPercentage = Number(result.formatPercentage || 70);
+    if (!result.weeklyContentPlan) result.weeklyContentPlan = [];
     
     return result;
 
   } catch (e: any) {
     console.error("AI Error for Pro Fixes:", e);
-    // Dữ liệu Fallback/Mặc định nếu Groq thất bại
     return {
       contentHook: "The 'Foundational Content' Framework",
+      contentHookExample: "I built this in 24 hours.",
       highestImpactCount: 3,
       bioDrafts: [
-        { "title": "Bio Draft 1 (Fallback)", "content": "Helping creators stop losing followers and start earning with X. Get your free audit now. 👇" },
-        { "title": "Bio Draft 2 (Fallback)", "content": "Built for the 1%. I share the ruthless playbooks I use to grow my SaaS and audience fast." },
-        { "title": "Bio Draft 3 (Fallback)", "content": "Turning X profiles into automated lead machines. Founder @MyTool | Ex-FAANG | Read my threads." }
+        { "title": "Fallback Draft 1", "content": "Helping creators grow. DM for info.", "rationale": "AI Service Busy." },
+        { "title": "Fallback Draft 2", "content": "Building SaaS in public.", "rationale": "AI Service Busy." },
+        { "title": "Fallback Draft 3", "content": "Fix your X profile today.", "rationale": "AI Service Busy." }
       ],
-      contentFormat: "Short-form actionable tips (1-2 sentences) with emojis and line breaks.",
+      contentFormat: "Short-form actionable tips.",
       formatPercentage: 70,
-      pinnedTweetCopy: "This is a fallback pinned tweet copy. Upgrade to Pro for the real draft!",
-      nextTweetIdeas: ["Share a tool you can't live without.", "Ask a controversial niche question.", "Post a specific business metric.", "Quote and reply to a famous builder.", "A short tutorial on a recent bug fix."]
+      pinnedTweetCopy: "Optimized tweet generation failed. Please try again.",
+      weeklyContentPlan: [
+          { day: "Monday", theme: "Value", content: "Share 3 tips about your niche." },
+          { day: "Wednesday", theme: "Engagement", content: "Ask your audience a question." },
+          { day: "Friday", theme: "Offer", content: "Promote your main link." }
+      ]
     };
   }
 }
