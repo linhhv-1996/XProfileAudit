@@ -1,0 +1,68 @@
+--- LOG TIME: 2025-11-20T15:29:24.419Z ---
+
+{
+  profile: {
+    name: 'Max/Wang',
+    handle: 'MaxSlashWang',
+    bio: 'Building profitable SaaS for the Creator Economy. Obsessed with conversion rates & funnel optimization. Current building X Profile Booster.',
+    avatar: 'https://pbs.twimg.com/profile_images/1953022266650050561/eKUjHUYE_normal.jpg',
+    banner: 'https://pbs.twimg.com/profile_banners/1564795129315336192/1763630842',
+    followers: 2163,
+    following: 1238,
+    tweetsCount: 6284,
+    isVerified: true,
+    website: 'http://xprofilebooster.xyz/',
+    joined: 'Wed Aug 31 02:00:17 +0000 2022',
+    location: 'The Internet, $$'
+  },
+  auditLeaks: [
+    'Low Value Signal: Your tweets are just noise/updates.',
+    'Zero Authority: You claim to be an expert but show NO numbers.',
+    'Fake Authority: You are listing goals, not wins.',
+    "Audience Invisible: Bio doesn't name WHO you help.",
+    'Zero Authority: Bio lacks achieved results.'
+  ],
+  topTweets: [
+    {
+      text: 'GM everyone ☀️!\n' +
+        '\n' +
+        "I'm currently building a small SaaS that analyzes and provides optimization suggestions for your X Profile.\n" +
+        '\n' +
+        'Follow me to track the entire journey and watch it grow day by day! \n' +
+        '\n' +
+        "Let's go! 🛠️ https://t.co/24zZUJoOht",
+      likes: 30,
+      retweets: 0,
+      views: 1232,
+      score: 30
+    },
+    {
+      text: '4 months since getting the X verification badge! Thanks for the support, everyone.\n' +
+        '\n' +
+        "Let's keep fighting the good fight and never give up! https://t.co/hqgS7fU5wf",
+      likes: 24,
+      retweets: 0,
+      views: 539,
+      score: 24
+    },
+    {
+      text: 'Confess: How much time a day do you spend scrolling X? \nMe, 24/7. Lol',
+      likes: 21,
+      retweets: 0,
+      views: 737,
+      score: 21
+    }
+  ],
+  pinnedTweetText: 'I’m building a SaaS to turn your X profile into a high-converting funnel.\n' +
+    '\n' +
+    'It’s called X Profile Booster.\n' +
+    '\n' +
+    '🛠️ Stack: Svelte Kit + AI \n' +
+    '🎯 Goal: $0 → $10k MRR \n' +
+    '📢 Strategy: 100% Build in Public\n' +
+    '\n' +
+    'I’ll share every win, fail, and code snippet along the way.\n' +
+    '\n' +
+    'Follow me to see how I… https://t.co/tiBIJzK8sj',
+  niche: 'General Public'
+}

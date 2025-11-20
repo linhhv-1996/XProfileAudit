@@ -19,27 +19,18 @@
 
   $: user = $page.data.user;
 
-  // --- STATE QUẢN LÝ DỮ LIỆU PRO ---
   let proDataLoaded = false;
   let isProDataLoading = false;
   let proFixesData: ProFixesResult | undefined = undefined;
   let proMonetizationData: MonetizationKit | undefined = undefined;
 
-  // Biến để theo dõi phiên phân tích cuối cùng
   let lastAnalysisTimestamp: number | undefined = undefined;
 
-  // [FIX QUAN TRỌNG]: Reset Pro Data mỗi khi có kết quả Audit mới (dựa vào timestamp)
   $: if (analysisData && analysisData.timestamp !== lastAnalysisTimestamp) {
-      console.log("[AnalysisSection] New analysis detected. Resetting Pro Data.");
       proDataLoaded = false;
       proFixesData = undefined;
       proMonetizationData = undefined;
       lastAnalysisTimestamp = analysisData.timestamp;
-      
-      // Nếu user đang đứng ở tab Pro, tự động load lại luôn cho mượt
-      if (user?.isPro && (activeTab === 'fixes-growth' || activeTab === 'monetization-kit')) {
-          fetchProData(handle);
-      }
   }
 
   let activeTab: TabId = "audit-free";
@@ -48,28 +39,38 @@
     fetchProData(handle, true);
   }
 
-  async function fetchProData(handle: string, regenerate: boolean = false) {
-    if (!handle) {
-      addToast("Please analyze a profile first.", "error");
-      return;
-    }
+  // Helper lọc Top Tweets
+  function getTopTweets(tweets: any[]) {
+      if (!tweets || tweets.length === 0) return [];
+      const processed = tweets.map(t => ({
+          text: t.text,
+          likes: t.likes,
+          retweets: t.retweets,
+          views: t.views,
+          score: (t.likes || 0) + (t.retweets || 0) * 2
+      }));
+      processed.sort((a, b) => b.score - a.score);
+      return processed.slice(0, 3);
+  }
 
+  async function fetchProData(handle: string, regenerate: boolean = false) {
+    if (!handle) { addToast("Please analyze a profile first.", "error"); return; }
     if (isProDataLoading) return;
     if (!user?.isPro) return;
-
-    // Nếu đã có data và không yêu cầu tạo lại -> Giữ nguyên (Cache Client)
-    if (proDataLoaded && !regenerate) {
-        return;
-    }
+    if (proDataLoaded && !regenerate) return;
 
     isProDataLoading = true;
     if(regenerate) addToast("Regenerating Pro report...", "info");
     
     try {
-      // --- LẤY DATA TỪ KẾT QUẢ AUDIT HIỆN TẠI ĐỂ TRUYỀN VÀO ---
-      // Đảm bảo AI sửa đúng cái đang hiển thị
+      // Lấy dữ liệu sạch từ kết quả Audit
       const currentLeaks = analysisData?.analysis?.leaks || [];
-      const userProfile = analysisData?.profile || {}; 
+      const userProfile = analysisData?.profile || {};
+      const rawTweets = analysisData?.tweets || []; 
+      const top3Tweets = getTopTweets(rawTweets);
+      
+      // [QUAN TRỌNG] Lấy pinnedTweet từ analysisData
+      const pinnedTweet = analysisData?.pinnedTweet || null;
 
       const response = await fetch("/api/generate-pro-content", {
         method: "POST",
@@ -77,8 +78,10 @@
         body: JSON.stringify({ 
             handle: handle.toLowerCase(), 
             regenerate,
-            auditLeaks: currentLeaks, // Truyền danh sách lỗi
-            profile: userProfile      // Truyền info user (Name, Bio...)
+            auditLeaks: currentLeaks,
+            profile: userProfile,
+            topTweets: top3Tweets,
+            pinnedTweet: pinnedTweet // Gửi pinned tweet lên để AI sửa
         }),
       });
 
@@ -107,7 +110,6 @@
 
   function handleTabClick(tab: TabId) {
     activeTab = tab;
-    // Chỉ gọi API khi vào tab Pro và User là Pro
     if (user?.isPro && (tab === "fixes-growth" || tab === "monetization-kit")) {
       fetchProData(handle);
     }
@@ -142,14 +144,15 @@
         {#if !user?.isPro}
           <div class="mt-0 rounded-lg bg-blue-50 border border-blue-200 p-4 text-center max-w-4xl mx-auto">
             <p class="text-sm text-blue-800">
-              Report generated at <strong class="font-semibold">{formattedTime}</strong>.
+              This report was generated at <strong class="font-semibold">{formattedTime}</strong>
+              (data is cached for 10 minutes).
             </p>
             <button
               type="button"
               class="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
               on:click={openProModal}
             >
-              ✨ Upgrade to Pro to unlock personalized Growth Kit
+              ✨ Upgrade to Pro to analyze real-time data
             </button>
           </div>
         {/if}

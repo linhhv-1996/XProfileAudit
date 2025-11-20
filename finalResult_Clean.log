@@ -1,0 +1,350 @@
+--- LOG TIME: 2025-11-20T16:15:09.268Z ---
+
+{
+  timestamp: 1763655309267,
+  profile: {
+    name: 'Max/Wang',
+    handle: 'MaxSlashWang',
+    bio: 'Building profitable SaaS for the Creator Economy. Obsessed with conversion rates & funnel optimization. Current building X Profile Booster.',
+    avatar: 'https://pbs.twimg.com/profile_images/1953022266650050561/eKUjHUYE_normal.jpg',
+    banner: 'https://pbs.twimg.com/profile_banners/1564795129315336192/1763630842',
+    followers: 2163,
+    following: 1238,
+    tweetsCount: 6289,
+    isVerified: true,
+    website: 'http://xprofilebooster.xyz/',
+    joined: 'Wed Aug 31 02:00:17 +0000 2022',
+    location: 'The Internet, $$'
+  },
+  tweets: [
+    {
+      id: '1991499988669804679',
+      text: 'Ran Marc Lou through my X Profile Booster.\n' +
+        '\n' +
+        '100/100.\n' +
+        '\n' +
+        'I think my algorithm is just a fanboy. It took one look at his MRR and said "Yeah, perfect, whatever." 🏳️\n' +
+        '\n' +
+        "Validated truth: When you're famous, Bio optimization is optional. For us? It's survival.\n" +
+        '\n' +
+        'Releasing a FREE demo this… https://t.co/kKwpiRmoKD',
+      createdAt: 'Thu Nov 20 13:32:52 +0000 2025',
+      views: 87,
+      likes: 2,
+      retweets: 0,
+      replies: 2,
+      bookmarks: 0,
+      isReply: false,
+      hasMedia: true
+    },
+    {
+      id: '1991368677539860752',
+      text: 'I’m building a SaaS to turn your X profile into a high-converting funnel.\n' +
+        '\n' +
+        'It’s called X Profile Booster.\n' +
+        '\n' +
+        '🛠️ Stack: Svelte Kit + AI \n' +
+        '🎯 Goal: $0 → $10k MRR \n' +
+        '📢 Strategy: 100% Build in Public\n' +
+        '\n' +
+        'I’ll share every win, fail, and code snippet along the way.\n' +
+        '\n' +
+        'Follow me to see how I… https://t.co/tiBIJzK8sj',
+      createdAt: 'Thu Nov 20 04:51:05 +0000 2025',
+      views: 448,
+      likes: 5,
+      retweets: 0,
+      replies: 5,
+      bookmarks: 1,
+      isReply: false,
+      hasMedia: true
+    },
+    {
+      id: '1991340516215255465',
+      text: 'Ultimately, I chose Grok as the core AI for writing bios and tweets for X Profile Booster.\n' +
+        '\n' +
+        "The reason: Grok is trained on X's data. Who understands X better than X itself? 😉 https://t.co/YRdV9W22Hb",
+      createdAt: 'Thu Nov 20 02:59:11 +0000 2025',
+      views: 197,
+      likes: 1,
+      retweets: 0,
+      replies: 1,
+      bookmarks: 0,
+      isReply: false,
+      hasMedia: true
+    },
+    {
+      id: '1991195020595196394',
+      text: 'My "X Profile Booster" just spat out these 3 bio suggestions. 🤣 Pretty decent, right guys? https://t.co/XVtlmg2JqX',
+      createdAt: 'Wed Nov 19 17:21:02 +0000 2025',
+      views: 154,
+      likes: 3,
+      retweets: 0,
+      replies: 1,
+      bookmarks: 0,
+      isReply: false,
+      hasMedia: true
+    },
+    {
+      id: '1991146002565247289',
+      text: "I'm currently working on the Copy &amp; Growth strategy for the X Profile Booster tool. Hmm, it's not looking too great, guys, lol. https://t.co/Sb91GCR5t6",
+      createdAt: 'Wed Nov 19 14:06:15 +0000 2025',
+      views: 195,
+      likes: 3,
+      retweets: 0,
+      replies: 1,
+      bookmarks: 0,
+      isReply: false,
+      hasMedia: true
+    },
+    {
+      id: '1991125427587256406',
+      text: 'Finally debugged the code and re-ran the test.\n' +
+        '60 points! Much more believable, lol.\n' +
+        'The X Profile Booster MVP will drop this weekend for everyone to try. https://t.co/j93aM2rMvJ',
+      createdAt: 'Wed Nov 19 12:44:29 +0000 2025',
+      views: 188,
+      likes: 8,
+      retweets: 0,
+      replies: 3,
+      bookmarks: 0,
+      isReply: false,
+      hasMedia: false
+    },
+    {
+      id: '1991086736504410441',
+      text: 'X Profile Booster scored me an 85? Hmm, skeptical. Needs a reality check. Even AI is buttering me up now, lol. 😂 https://t.co/CUHNgp6iFp',
+      createdAt: 'Wed Nov 19 10:10:45 +0000 2025',
+      views: 222,
+      likes: 10,
+      retweets: 1,
+      replies: 5,
+      bookmarks: 0,
+      isReply: false,
+      hasMedia: false
+    },
+    {
+      id: '1991042526183371046',
+      text: 'Stop leaking money on X! 🛑\n' +
+        '\n' +
+        "I'm coding X Profile Booster, the most ruthless AI Auditor. It finds and fixes every single leak costing you customers.\n" +
+        '\n' +
+        "Commitment: I'm sharing all Code Logs &amp; Growth Lessons on the $0 → $5k MRR journey.\n" +
+        '\n' +
+        "Don't miss out: FOLLOW + Turn on 🔔 to be… https://t.co/QXTnj3tphv",
+      createdAt: 'Wed Nov 19 07:15:04 +0000 2025',
+      views: 258,
+      likes: 5,
+      retweets: 1,
+      replies: 2,
+      bookmarks: 0,
+      isReply: false,
+      hasMedia: true
+    },
+    {
+      id: '1990965092599714030',
+      text: 'GN, everyone. I need about 7 hours of sleep every night to be sharp the next day. Time to crash, guys, we’ll hit it again tomorrow! https://t.co/VMVhEKBD3a',
+      createdAt: 'Wed Nov 19 02:07:23 +0000 2025',
+      views: 251,
+      likes: 8,
+      retweets: 0,
+      replies: 5,
+      bookmarks: 0,
+      isReply: false,
+      hasMedia: true
+    },
+    {
+      id: '1990799516182933962',
+      text: 'Feels like everyone on here is obsessed with Supabase lately. 😅\n' +
+        '\n' +
+        'Working on the Auth for X Profile Booster today, but I decided to stick with Firebase. \n' +
+        '\n' +
+        'It’s just muscle memory at this point, setup took 5 mins, leaving me more time to focus on the core business logic.\n' +
+        '\n' +
+        'The best… https://t.co/OotDjdPFKe',
+      createdAt: 'Tue Nov 18 15:09:26 +0000 2025',
+      views: 308,
+      likes: 3,
+      retweets: 0,
+      replies: 3,
+      bookmarks: 0,
+      isReply: false,
+      hasMedia: true
+    },
+    {
+      id: '1990781354410446940',
+      text: "Ugh, I was using RapidAPI, but Cloudflare went down, so my work completely failed. Guess I won't be coding today, lol.",
+      createdAt: 'Tue Nov 18 13:57:16 +0000 2025',
+      views: 449,
+      likes: 6,
+      retweets: 1,
+      replies: 3,
+      bookmarks: 0,
+      isReply: false,
+      hasMedia: false
+    },
+    {
+      id: '1990445574349529172',
+      text: "Yeah, I finally finished the API call to fetch the user's profile information and their 20 latest tweets 💪💪💪 https://t.co/r0f126p4AP",
+      createdAt: 'Mon Nov 17 15:43:00 +0000 2025',
+      views: 470,
+      likes: 11,
+      retweets: 0,
+      replies: 5,
+      bookmarks: 0,
+      isReply: false,
+      hasMedia: true
+    },
+    {
+      id: '1990400567269842969',
+      text: 'Just switched to Svelte and the development experience is so much lighter!\n' +
+        '\n' +
+        'Reactivity is just variable assignment. The code inside the &lt;script&gt; block is clean, looking exactly like plain JavaScript. No complex syntax, no Virtual DOM overhead.\n' +
+        '\n' +
+        'Deciding to try Svelte/SvelteKit… https://t.co/1IoMRGwfWR',
+      createdAt: 'Mon Nov 17 12:44:09 +0000 2025',
+      views: 457,
+      likes: 10,
+      retweets: 0,
+      replies: 2,
+      bookmarks: 0,
+      isReply: false,
+      hasMedia: true
+    },
+    {
+      id: '1990349370861273273',
+      text: 'GM everyone ☀️!\n' +
+        '\n' +
+        "I'm currently building a small SaaS that analyzes and provides optimization suggestions for your X Profile.\n" +
+        '\n' +
+        'Follow me to track the entire journey and watch it grow day by day! \n' +
+        '\n' +
+        "Let's go! 🛠️ https://t.co/24zZUJoOht",
+      createdAt: 'Mon Nov 17 09:20:43 +0000 2025',
+      views: 1232,
+      likes: 30,
+      retweets: 0,
+      replies: 18,
+      bookmarks: 1,
+      isReply: false,
+      hasMedia: true
+    },
+    {
+      id: '1990047363529093156',
+      text: '4 months since getting the X verification badge! Thanks for the support, everyone.\n' +
+        '\n' +
+        "Let's keep fighting the good fight and never give up! https://t.co/hqgS7fU5wf",
+      createdAt: 'Sun Nov 16 13:20:39 +0000 2025',
+      views: 539,
+      likes: 24,
+      retweets: 0,
+      replies: 7,
+      bookmarks: 0,
+      isReply: false,
+      hasMedia: true
+    },
+    {
+      id: '1990035902249455663',
+      text: "I read a pretty cool article and wanted to share it with everyone: 'Block YouTube Ads on AppleTV by Decrypting and Stripping Ads from Profobuf.'\n" +
+        '\n' +
+        "The author also has a great quote: 'Just because I can break something doesn’t mean I should.'\n" +
+        '\n' +
+        'https://t.co/zTRCFO6hrN https://t.co/PrrfWHqHrb',
+      createdAt: 'Sun Nov 16 12:35:06 +0000 2025',
+      views: 439,
+      likes: 9,
+      retweets: 0,
+      replies: 3,
+      bookmarks: 0,
+      isReply: false,
+      hasMedia: true
+    },
+    {
+      id: '1989993136500953507',
+      text: "GM everyone. It's Sunday today, let's rest up and save our energy to fight again tomorrow. Also, is anyone here into watching MMA like I am? 🥊 https://t.co/md19fYEATG",
+      createdAt: 'Sun Nov 16 09:45:10 +0000 2025',
+      views: 395,
+      likes: 13,
+      retweets: 0,
+      replies: 9,
+      bookmarks: 0,
+      isReply: false,
+      hasMedia: true
+    },
+    {
+      id: '1989611715571732880',
+      text: 'Confess: How much time a day do you spend scrolling X? \nMe, 24/7. Lol',
+      createdAt: 'Sat Nov 15 08:29:32 +0000 2025',
+      views: 737,
+      likes: 21,
+      retweets: 0,
+      replies: 12,
+      bookmarks: 0,
+      isReply: false,
+      hasMedia: false
+    },
+    {
+      id: '1989331830747918550',
+      text: 'I need some fresh ideas.\n' +
+        '\n' +
+        'I need some fresh ideas.\n' +
+        '\n' +
+        'I need some fresh ideas.\n' +
+        '\n' +
+        'I need some fresh ideas.\n' +
+        '\n' +
+        'I need some fresh ideas.',
+      createdAt: 'Fri Nov 14 13:57:23 +0000 2025',
+      views: 548,
+      likes: 20,
+      retweets: 0,
+      replies: 9,
+      bookmarks: 0,
+      isReply: false,
+      hasMedia: false
+    }
+  ],
+  pinnedTweet: {
+    id: '1991531656201871497',
+    text: '90% of your X profiles are tragic. 📉\n' +
+      '\n' +
+      'Seriously. I’ve been scanning random profiles, and the scores are... painful. You’re losing followers before they even read your pinned tweet.\n' +
+      '\n' +
+      'So I’m building X Profile Booster.\n' +
+      '\n' +
+      'It’s a tool that audits your Bio, Banner, and Vibe check. It… https://t.co/W2zkNFulEh',
+    createdAt: 'Thu Nov 20 15:38:42 +0000 2025',
+    views: 24,
+    likes: 0,
+    retweets: 0,
+    replies: 0,
+    bookmarks: 0,
+    isReply: false,
+    hasMedia: true
+  },
+  analysis: {
+    targetAudience: 'General Public',
+    avgEngagementRate: 3.87,
+    totalScore: 42,
+    keyScores: {
+      nicheClarity: 36,
+      contentStrategy: 38,
+      offerClarity: 56,
+      monetization: 34
+    },
+    leaks: [
+      'Low Value Signal: Your tweets are just noise/updates.',
+      'Zero Authority: You claim to be an expert but show NO numbers.',
+      'Fake Authority: You are listing goals, not wins.',
+      "Audience Invisible: Bio doesn't name WHO you help.",
+      'Zero Authority: Bio lacks achieved results.'
+    ],
+    tips: [
+      "Add 'for [Target Audience]' to your bio.",
+      'Show PROOF (Revenue, Users), not just Goals.',
+      'State your title (e.g. Founder).',
+      'Clean up bio grammar.',
+      'Focus on ONE niche.'
+    ]
+  }
+}

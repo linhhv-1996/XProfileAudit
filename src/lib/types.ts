@@ -2,11 +2,13 @@ export type TabId = 'audit-free' | 'fixes-growth' | 'monetization-kit';
 
 // Bổ sung các Types cho Pro Content
 export interface BioDraft {
+  [x: string]: any;
   title: string;
   content: string;
 }
 
 export interface ProFixesResult {
+  [x: string]: any;
   contentHook: string;
   contentHookExample: string;
   highestImpactCount: number;

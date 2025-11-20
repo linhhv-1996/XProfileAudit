@@ -1,4 +1,3 @@
-// File: src/routes/api/analyze/+server.ts
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { RAPIDAPI_KEY } from '$env/static/private';
@@ -7,32 +6,52 @@ import { getAuditChecklist } from '$lib/server/ai';
 import { calculateDeterministicScore, type ApiChecks } from '$lib/server/scoring';
 import { getCache, setCache } from '$lib/server/cache';
 import { getUserProfile } from '$lib/server/users';
-
 import { logToFile } from '$lib/server/dev';
 
 const API_HOST = 'twitter241.p.rapidapi.com';
 
-/**
- * Tính toán Tỷ lệ Tương tác Trung bình
- * (Tổng Engagements / Tổng Views) * 100
- */
+// --- HELPER: CLEAN DATA (Lọc rác) ---
+function cleanProfile(raw: any) {
+    return {
+        name: raw?.core?.name || "",
+        handle: raw?.core?.screen_name || "",
+        bio: raw.legacy.description || "",
+        avatar: raw.avatar.image_url || "",
+        banner: raw.legacy.profile_banner_url,
+        followers: raw.legacy.followers_count || 0,
+        following: raw.legacy.friends_count || 0,
+        tweetsCount: raw.legacy.statuses_count || 0,
+        isVerified: raw.is_blue_verified || false,
+        website: raw.legacy.entities?.url?.urls?.[0]?.expanded_url || "",
+        joined: raw.core.created_at,
+        location: raw.location?.location || "",
+    };
+}
+
+function cleanTweet(t: any) {
+    if (!t) return null;
+    return {
+        id: t.rest_id || t.tweet.rest_id || "",
+        text: t.legacy?.full_text || t.tweet?.legacy?.full_text || "",
+        createdAt: t.legacy?.created_at || t.tweet?.legacy?.created_at,
+        views: Number(t.views?.count || t.tweet?.views.count || 0),
+        likes: t.legacy?.favorite_count || t.tweet?.legacy?.favorite_count || 0,
+        retweets: t.legacy?.retweet_count || t.tweet?.legacy?.retweet_count || 0,
+        replies: t.legacy?.reply_count || t.tweet?.legacy?.reply_count || 0,
+        bookmarks: t.legacy?.bookmark_count || t.tweet?.legacy?.bookmark_count || 0,
+        isReply: !!t.legacy?.in_reply_to_status_id_str,
+        hasMedia: !!t.legacy?.entities?.media?.length
+    };
+}
+
 function calculateAvgEngagementRate(tweets: any[]): number {
     let totalEngagements = 0;
     let totalViews = 0;
-
     if (!tweets || tweets.length === 0) return 0;
 
     for (const tweet of tweets) {
-        if (tweet && tweet.legacy) {
-            totalEngagements += (tweet.legacy.favorite_count || 0);
-            totalEngagements += (tweet.legacy.reply_count || 0);
-            totalEngagements += (tweet.legacy.retweet_count || 0);
-            totalEngagements += (tweet.legacy.bookmark_count || 0);
-        }
-
-        if (tweet && tweet.views && tweet.views.count) {
-            totalViews += Number(tweet.views.count) ?? 0;
-        }
+        totalEngagements += (tweet.likes + tweet.replies + tweet.retweets + tweet.bookmarks);
+        totalViews += tweet.views;
     }
 
     if (totalViews === 0) return 0;
@@ -40,32 +59,25 @@ function calculateAvgEngagementRate(tweets: any[]): number {
 }
 
 export const POST: RequestHandler = async ({ request, locals }) => {
-    // 1. Check Auth & Params
-    if (!locals.user) {
-        return json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    if (!locals.user) return json({ error: 'Unauthorized' }, { status: 401 });
 
     const uid = locals.user.uid;
     const { handle: rawHandle } = await request.json();
     const handle = rawHandle.toLowerCase();
 
-    if (!handle) {
-        return json({ error: 'Handle is required' }, { status: 400 });
-    }
+    if (!handle) return json({ error: 'Handle is required' }, { status: 400 });
 
     try {
         const dbUser = await getUserProfile(uid);
         const isUserPro = dbUser?.isPro === true;
 
-        // 2. Check Cache Kết quả hiển thị (Chỉ áp dụng cho user Free)
+        // Check Cache
         if (!isUserPro) {
             const cachedData = await getCache(handle);
-            if (cachedData) {
-                return json({ ...cachedData, isCached: true });
-            }
+            if (cachedData) return json({ ...cachedData, isCached: true });
         }
 
-        console.log(`[RUNNING] Chạy analysis mới cho: ${handle} (Pro: ${isUserPro})`);
+        console.log(`[RUNNING] Analyzing: ${handle}`);
 
         const options = {
             method: 'GET',
@@ -75,171 +87,99 @@ export const POST: RequestHandler = async ({ request, locals }) => {
             }
         };
 
-        // --- Call 1: Lấy User Info ---
+        // 1. Get User
         const userUrl = `https://${API_HOST}/user?username=${handle}`;
         const userResponse = await fetch(userUrl, options);
         const userData = await userResponse.json();
 
-        if (!userResponse.ok || !userData.result?.data?.user?.result) {
-            console.error('API Error (User):', userData);
-            throw new Error('User not found or invalid API response');
-        }
-
+        if (!userData.result?.data?.user?.result) throw new Error('User not found');
         const userRaw = userData.result.data.user.result;
-        const rest_id = userRaw.rest_id;
-        const profileData = userRaw.legacy;
         
-        const isVerified = !!userRaw.is_blue_verified;
-        const profileImageUrl = userRaw.avatar?.image_url || "";
-        const canDM = !!userRaw.dm_permissions?.can_dm
-        profileData.profile_image_url_https = userRaw.avatar?.image_url || "";
-        profileData.screen_name = handle;
-        profileData.verified = isVerified;
-        profileData.name = userRaw?.core?.name || "Unknow";
+        const profile = cleanProfile(userRaw);
+        // profile.isVerified = !!userRaw?.is_blue_verified;
+        // profile.avatar = userRaw.avatar?.image_url || "";
 
-        // --- Call 2: Lấy Tweets ---
+        console.log(profile);
+
+        // 2. Get Tweets
+        const rest_id = userRaw.rest_id;
         const tweetsUrl = `https://${API_HOST}/user-tweets?user=${rest_id}&count=20`;
         const tweetsResponse = await fetch(tweetsUrl, options);
         const tweetsData = await tweetsResponse.json();
 
-        if (!tweetsResponse.ok) {
-            throw new Error('Failed to fetch tweets');
-        }
-
-        // --- Parse Timeline ---
-        let pinnedTweet = null;
-        let regularTweets: any[] = [];
+        let pinnedTweetRaw = null;
+        let regularTweetsRaw: any[] = [];
 
         const instructions = tweetsData.result?.timeline?.instructions || [];
         instructions.forEach((inst: any) => {
             if (inst.type === 'TimelinePinEntry') {
-                const result = inst.entry?.content?.itemContent?.tweet_results?.result;
-                if (result) pinnedTweet = result;
+                pinnedTweetRaw = inst.entry?.content?.itemContent?.tweet_results?.result;
             } else if (inst.type === 'TimelineAddEntries') {
-                regularTweets = inst.entries
+                regularTweetsRaw = inst.entries
                     .filter((e: any) => e.content?.itemContent?.itemType === 'TimelineTweet')
                     .map((e: any) => e.content.itemContent.tweet_results.result);
             }
         });
 
-        // --- Logic Phân Tích ---
+        const tweets = regularTweetsRaw.map(cleanTweet).filter(t => t !== null);
+        const pinnedTweet = cleanTweet(pinnedTweetRaw);
 
-        // [NEW] 1. Tính toán tỷ lệ Visuals
-        let tweetsWithMedia = 0;
-        regularTweets.forEach((t: any) => {
-            // Check media entities trong tweet
-            const media = t?.legacy?.entities?.media;
-            if (media && media.length > 0) {
-                tweetsWithMedia++;
-            }
-        });
-        const percentVisuals = regularTweets.length > 0 
-            ? Math.round((tweetsWithMedia / regularTweets.length) * 100) 
+        logToFile('regularTweetsRaw.log', regularTweetsRaw);
+
+        // 3. Logic Phân Tích
+        const percentVisuals = tweets.length > 0 
+            ? Math.round((tweets.filter(t => t.hasMedia).length / tweets.length) * 100) 
             : 0;
         
-        // 2. Tính Engagement Rate
-        const rawAvgER = calculateAvgEngagementRate(regularTweets);
+        const rawAvgER = calculateAvgEngagementRate(tweets);
         const formattedAvgER = parseFloat((rawAvgER * 100).toFixed(2));
 
-        // 3. Chuẩn bị Payload cho AI
-        const recentTweetTexts = regularTweets
-            .map((t: any) => t.legacy?.full_text || t?.tweet?.legacy?.full_text || "")
-            .filter((t: string) => !t.startsWith("RT @"))
-            .slice(0, 20);
+        const recentTweetTexts = tweets
+            .filter(t => !t.text.startsWith("RT @"))
+            .slice(0, 20)
+            .map(t => t.text);
 
         const aiPayload = {
-            bio: profileData.description || "",
-            pinned_text: pinnedTweet?.legacy?.full_text || pinnedTweet?.tweet?.legacy?.full_text || "",
+            bio: profile.bio,
+            pinned_text: pinnedTweet?.text || "",
             recent_tweets: recentTweetTexts,
-            follower_count: profileData.followers_count,
-            profile_image_url: profileImageUrl
+            follower_count: profile.followers,
+            profile_image_url: profile.avatar
         };
 
-        // 4. Gọi AI lấy Checklist (True/False)
-        const checklist = await getAuditChecklist(aiPayload);
-
-        const followerCount = profileData.followers_count;
-
-        // 5. Chuẩn bị dữ liệu check cứng từ API
-        const apiChecks: ApiChecks = {
-            hasLink: (profileData.entities?.url?.urls?.length || 0) > 0,
-            hasPinned: !!pinnedTweet,
-            isVerified: isVerified,
-            percentVisuals: percentVisuals,
-            canDM: canDM,
-            followerCount: followerCount
-        };
-
-        // ============================================================
-        // [NEW] WHALE BYPASS: Nếu > 50k Follower -> BỎ QUA AI LUÔN
-        // ============================================================
-        if (followerCount > 50000) {
-            console.log(`[WHALE DETECTED] ${handle} has ${followerCount} followers. Skipping AI.`);
-
-            const whaleResult = {
-                timestamp: Date.now(),
-                profile: profileData,
-                isVerified,
-                tweets: regularTweets,
-                pinnedTweet,
-                analysis: {
-                    targetAudience: "The Entire Internet 🌍",
-                    avgEngagementRate: formattedAvgER,
-                    totalScore: 100,
-                    keyScores: {
-                        nicheClarity: 100,
-                        contentStrategy: 100,
-                        offerClarity: 100,
-                        monetization: 100
-                    },
-                    leaks: [
-                        "Suffering from Success.", 
-                        "You broke the algorithm.", 
-                        "Your account is too big for this tool.",
-                        "Organic reach is unfair to others.",
-                        "No leaks found. You are the leak."
-                    ],
-                    tips: [
-                        "Keep doing whatever you are doing.",
-                        "Launch a $5000 course.",
-                        "Buy an island.",
-                        "Tweet literally anything.",
-                        "Invest in X Profile Booster 😉"
-                    ],
-                    pro: null
-                }
-            };
-
-            // Cache kết quả này
-             await setCache(`user_data:${handle}`, { 
-                profile: profileData, 
-                niche: { target_audience: "Everyone" },
-                apiChecks, 
-                recentTweetsText: recentTweetTexts,
-                avgEngagementRate: formattedAvgER
-            }, 3600);
-
-            await setCache(handle, whaleResult);
-            
-            return json(whaleResult);
+        // 4. Gọi AI Audit
+        let checklist;
+        if (profile.followers > 50000) {
+             checklist = {
+                 summary: { target_audience: "Global Audience" },
+                 niche: { is_actually_authority: true },
+                 content: { is_value_dense: true },
+                 offer: { pinned_has_social_proof: true },
+                 monetization: { link_is_lead_magnet: true }
+             };
+        } else {
+             checklist = await getAuditChecklist(aiPayload);
         }
-        // ============================================================
 
-        // 6. Tính điểm Deterministic (Logic cứng)
+        const apiChecks: ApiChecks = {
+            hasLink: !!profile.website,
+            hasPinned: !!pinnedTweet,
+            isVerified: profile.isVerified,
+            percentVisuals,
+            canDM: true, 
+            followerCount: profile.followers
+        };
+
         const scoring = calculateDeterministicScore(checklist, apiChecks);
 
-        logToFile("aiPayload.log", aiPayload);
-        logToFile("apiChecks.log", apiChecks);
-
-        // 7. Đóng gói kết quả cuối cùng
+        // 5. Đóng gói kết quả
         const finalResult = {
             timestamp: Date.now(),
-            profile: profileData,
-            isVerified,
-            tweets: regularTweets,
-            pinnedTweet,
+            profile: profile,      
+            tweets: tweets,       
+            pinnedTweet: pinnedTweet,
             analysis: {
-                targetAudience: checklist.summary.target_audience,
+                targetAudience: checklist.summary?.target_audience || "General",
                 avgEngagementRate: formattedAvgER,
                 totalScore: scoring.totalScore,
                 keyScores: {
@@ -248,34 +188,28 @@ export const POST: RequestHandler = async ({ request, locals }) => {
                     offerClarity: scoring.breakdown.offer,
                     monetization: scoring.breakdown.monetization,
                 },
-                
                 leaks: scoring.leaks,
-                tips: scoring.tips,
-                
-                pro: null 
+                tips: scoring.tips
             }
         };
 
-        logToFile("finalResult.log", finalResult);
+        logToFile("finalResult_Clean.log", finalResult);
 
-        // 8. Caching Strategy
-        
-        // Cache A: Lưu Context dữ liệu gốc (60 PHÚT)
         await setCache(`user_data:${handle}`, { 
-            profile: profileData, 
-            niche: checklist.summary.target_audience,
+            profile, 
+            niche: checklist.summary?.target_audience,
             apiChecks, 
             recentTweetsText: recentTweetTexts,
-            avgEngagementRate: formattedAvgER // Cache ER cho Pro tab
-        }, 3600); 
+            avgEngagementRate: formattedAvgER,
+            pinnedTweet // Cache luôn pinnedTweet để backup
+        }, 3600);
 
-        // Cache B: Lưu Kết quả Audit hiển thị (10 PHÚT - Default)
         await setCache(handle, finalResult);
 
         return json(finalResult);
 
     } catch (error: any) {
-        console.error('Lỗi trong /api/analyze:', error.message);
-        return json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        console.error('Analyze Error:', error);
+        return json({ error: error.message }, { status: 500 });
     }
 };
