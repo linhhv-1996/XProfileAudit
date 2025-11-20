@@ -32,6 +32,13 @@
               <div class="flex-1"><div class="h-2 rounded-full bg-gray-200"><div class="h-2 rounded-full bg-primary" style="width: {analysisData.analysis.keyScores.nicheClarity}%"></div></div></div>
               <div class="w-10 text-right text-gray-900 font-semibold">{analysisData.analysis.keyScores.nicheClarity}</div>
             </div>
+
+            <div class="flex items-center gap-3">
+              <div class="w-32 text-gray-600">Content Strategy</div>
+              <div class="flex-1"><div class="h-2 rounded-full bg-gray-200"><div class="h-2 rounded-full bg-primary" style="width: {analysisData.analysis.keyScores.contentStrategy}%"></div></div></div>
+              <div class="w-10 text-right text-gray-900 font-semibold">{analysisData.analysis.keyScores.contentStrategy}</div>
+            </div>
+
              <div class="flex items-center gap-3">
               <div class="w-32 text-gray-600">Offer Clarity</div>
               <div class="flex-1"><div class="h-2 rounded-full bg-gray-200"><div class="h-2 rounded-full bg-primary" style="width: {analysisData.analysis.keyScores.offerClarity}%"></div></div></div>

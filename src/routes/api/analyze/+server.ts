@@ -1,3 +1,4 @@
+// File: src/routes/api/analyze/+server.ts
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { RAPIDAPI_KEY } from '$env/static/private';
@@ -39,7 +40,7 @@ function calculateAvgEngagementRate(tweets: any[]): number {
 }
 
 export const POST: RequestHandler = async ({ request, locals }) => {
-    // 1. Check Auth
+    // 1. Check Auth & Params
     if (!locals.user) {
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -57,7 +58,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         const isUserPro = dbUser?.isPro === true;
 
         // 2. Check Cache Kết quả hiển thị (Chỉ áp dụng cho user Free)
-        // User Pro luôn được xem data mới nhất (Real-time)
         if (!isUserPro) {
             const cachedData = await getCache(handle);
             if (cachedData) {
@@ -89,8 +89,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         const rest_id = userRaw.rest_id;
         const profileData = userRaw.legacy;
         
-        // Check tích xanh (Blue Verified hoặc Verified Type)
         const isVerified = !!userRaw.is_blue_verified;
+        const profileImageUrl = userRaw.avatar?.image_url || "";
+        const canDM = !!userRaw.dm_permissions?.can_dm
 
         // --- Call 2: Lấy Tweets ---
         const tweetsUrl = `https://${API_HOST}/user-tweets?user=${rest_id}&count=20`;
@@ -119,11 +120,24 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
         // --- Logic Phân Tích ---
 
-        // 1. Tính Engagement Rate
+        // [NEW] 1. Tính toán tỷ lệ Visuals
+        let tweetsWithMedia = 0;
+        regularTweets.forEach((t: any) => {
+            // Check media entities trong tweet
+            const media = t?.legacy?.entities?.media;
+            if (media && media.length > 0) {
+                tweetsWithMedia++;
+            }
+        });
+        const percentVisuals = regularTweets.length > 0 
+            ? Math.round((tweetsWithMedia / regularTweets.length) * 100) 
+            : 0;
+        
+        // 2. Tính Engagement Rate
         const rawAvgER = calculateAvgEngagementRate(regularTweets);
         const formattedAvgER = parseFloat((rawAvgER * 100).toFixed(2));
 
-        // 2. Chuẩn bị Payload cho AI (Lấy 10 tweet text để tiết kiệm token)
+        // 3. Chuẩn bị Payload cho AI
         const recentTweetTexts = regularTweets
             .map((t: any) => t.legacy?.full_text || t?.tweet?.legacy?.full_text || "")
             .filter((t: string) => !t.startsWith("RT @"))
@@ -133,27 +147,29 @@ export const POST: RequestHandler = async ({ request, locals }) => {
             bio: profileData.description || "",
             pinned_text: pinnedTweet?.legacy?.full_text || pinnedTweet?.tweet?.legacy?.full_text || "",
             recent_tweets: recentTweetTexts,
-            follower_count: profileData.followers_count
+            follower_count: profileData.followers_count,
+            profile_image_url: profileImageUrl
         };
 
-        logToFile("payload.log", aiPayload);
-
-        // 3. Gọi AI lấy Checklist (True/False)
+        // 4. Gọi AI lấy Checklist (True/False)
         const checklist = await getAuditChecklist(aiPayload);
 
-        // 4. Chuẩn bị dữ liệu check cứng từ API
+        // 5. Chuẩn bị dữ liệu check cứng từ API
         const apiChecks: ApiChecks = {
             hasLink: (profileData.entities?.url?.urls?.length || 0) > 0,
             hasPinned: !!pinnedTweet,
-            isVerified: isVerified
+            isVerified: isVerified,
+            percentVisuals: percentVisuals,
+            canDM: canDM,
         };
 
-        // 5. Tính điểm Deterministic (Logic cứng)
+        // 6. Tính điểm Deterministic (Logic cứng)
         const scoring = calculateDeterministicScore(checklist, apiChecks);
 
-        console.log(scoring);
+        logToFile("aiPayload.log", aiPayload);
+        logToFile("apiChecks.log", apiChecks);
 
-        // 6. Đóng gói kết quả cuối cùng
+        // 7. Đóng gói kết quả cuối cùng
         const finalResult = {
             timestamp: Date.now(),
             profile: profileData,
@@ -163,36 +179,34 @@ export const POST: RequestHandler = async ({ request, locals }) => {
             analysis: {
                 targetAudience: checklist.targetAudience,
                 avgEngagementRate: formattedAvgER,
-                
-                // Điểm số tổng (Score)
                 totalScore: scoring.totalScore,
-                
-                // Điểm thành phần (Quy đổi ra thang 100 để hiển thị UI Progress Bar)
                 keyScores: {
-                    nicheClarity: Math.min(100, Math.round((scoring.breakdown.niche / 25) * 100)),
-                    offerClarity: Math.min(100, Math.round((scoring.breakdown.offer / 30) * 100)), // Offer max 30
-                    monetization: Math.min(100, Math.round((scoring.breakdown.monetization / 30) * 100)) // Money max 30
+                    nicheClarity: Math.min(100, Math.round((scoring.breakdown.niche / 20) * 100)),
+                    contentStrategy: Math.min(100, Math.round((scoring.breakdown.content / 25) * 100)),
+                    offerClarity: Math.min(100, Math.round((scoring.breakdown.offer / 30) * 100)),
+                    monetization: Math.min(100, Math.round((scoring.breakdown.monetization / 25) * 100))
                 },
                 
-                // Lỗi & Lời khuyên (Generated by Code, not AI hallucination)
+                // Lỗi & Lời khuyên
                 leaks: scoring.leaks,
                 tips: scoring.tips,
                 
-                // Dữ liệu Pro để null (Sẽ gọi qua API /api/generate riêng khi user bấm)
                 pro: null 
             }
         };
 
-        // 7. Caching Strategy
+        logToFile("finalResult.log", finalResult);
+
+        // 8. Caching Strategy
         
         // Cache A: Lưu Context dữ liệu gốc (60 PHÚT)
-        // Để dùng cho các tính năng Generate (Pro) sau này mà không cần gọi lại RapidAPI
         await setCache(`user_data:${handle}`, { 
             profile: profileData, 
             niche: checklist.targetAudience,
-            apiChecks, // Lưu lại status link/pin để AI generate content chuẩn context
-            recentTweetsText: recentTweetTexts // Lưu text tweet để AI học văn phong
-        }, 3600); // 3600s = 1 giờ
+            apiChecks, 
+            recentTweetsText: recentTweetTexts,
+            avgEngagementRate: formattedAvgER // Cache ER cho Pro tab
+        }, 3600); 
 
         // Cache B: Lưu Kết quả Audit hiển thị (10 PHÚT - Default)
         await setCache(handle, finalResult);

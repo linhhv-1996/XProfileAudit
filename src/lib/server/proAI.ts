@@ -103,7 +103,7 @@ export async function generateProFixes(payload: ProPayload): Promise<ProFixesRes
             { role: 'user', content: JSON.stringify(minimalPayload) }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.1, 
+        temperature: 0.8,
     });
 
     const content = completion.choices[0]?.message?.content;

@@ -12,11 +12,12 @@ export interface ScoringResult {
   };
 }
 
-// Data lấy từ RapidAPI (Cứng)
 export interface ApiChecks {
     hasLink: boolean;
     hasPinned: boolean;
-    isVerified: boolean; // Check tích xanh
+    isVerified: boolean;
+    percentVisuals: number;
+    canDM: boolean;
 }
 
 export function calculateDeterministicScore(
@@ -27,106 +28,123 @@ export function calculateDeterministicScore(
   let leaks: string[] = [];
   let tips: string[] = [];
   
-  let nicheScore = 0;   // Max 25
-  let contentScore = 0; // Max 15
-  let offerScore = 0;   // Max 30
-  let moneyScore = 0;   // Max 30
+  let nicheScore = 0;   // Target: 20
+  let contentScore = 0; // Target: 25
+  let offerScore = 0;   // Target: 30
+  let moneyScore = 0;   // Target: 25
 
   // =================================================
-  // 1. NICHE & IDENTITY (Max 25 points)
+  // 1. NICHE & IDENTITY (Max 20 points)
   // =================================================
   
-  // Check Tích xanh (5 điểm) -> QUAN TRỌNG CHO TRUST
-  if (apiData.isVerified) {
-      nicheScore += 5;
-  } else {
-      // Không trừ điểm quá nặng, nhưng cảnh báo
-      tips.push("Consider X Premium to boost algorithmic reach and instant trust.");
-  }
+  if (apiData.isVerified) nicheScore += 5;
+  else tips.push("Consider X Premium to boost algorithmic reach and instant trust.");
 
-  console.log("Scoring")
-  console.log(check)
-
-  if (check.niche.bioHasKeywords) nicheScore += 10;
+  if (check.niche.bioHasKeywords) nicheScore += 5;
   else {
     leaks.push("Bio is invisible to Search (Missing keywords).");
-    tips.push("Add 2-3 industry-specific keywords (e.g., #SaaS, Marketing) to your Bio immediately.");
+    tips.push("Add 2-3 industry-specific keywords (e.g., #SaaS, Marketing) to your Bio.");
   }
 
-  if (check.niche.bioShowsAuthority) nicheScore += 10;
+  if (check.niche.bioShowsAuthority) nicheScore += 5;
   else {
     leaks.push("Bio lacks Authority/Trust signals.");
-    tips.push("Add specific numbers to your Bio: Years of experience, Revenue, or User count.");
+    tips.push("Add numbers to your Bio: Years of exp, Revenue, or User count.");
+  }
+
+  if (check.niche.profilePhotoProfessional) nicheScore += 5;
+  else {
+    leaks.push("Profile photo looks default or unprofessional.");
   }
 
   // =================================================
-  // 2. CONTENT STRATEGY (Max 15 points)
+  // 2. CONTENT STRATEGY (Max 25 points)
   // =================================================
+  
   if (check.content.tweetsMatchBio) contentScore += 10;
   else {
     leaks.push("Content is unfocused (The 'Jack of all trades' trap).");
-    tips.push("The algorithm loves consistency. Stick to 1 core topic for your next 10 tweets.");
+    tips.push("The algorithm loves consistency. Stick to 1 core topic.");
   }
 
   if (check.content.usesFormatting) contentScore += 5;
-  else tips.push("Stop posting 'walls of text'. Use line breaks and lists to improve readability.");
+  
+  if (check.content.engagesAudience) contentScore += 5;
+  else tips.push("Your content is 'Broadcasting' not 'Engaging'. Ask more questions.");
+
+  // [NEW] Visuals Logic
+  if (apiData.percentVisuals >= 30) {
+      contentScore += 5;
+  } else {
+      leaks.push("Feed looks like a 'Wall of Text' (Low Visuals).");
+      tips.push("Tweets with images/videos get 3x more engagement. Aim for 1 visual every 3 tweets.");
+  }
   
   // =================================================
   // 3. OFFER CLARITY (Max 30 points)
   // =================================================
-  if (check.offer.bioClearProblemSolution) offerScore += 15;
+  
+  if (check.offer.bioClearProblemSolution) offerScore += 10;
   else {
     leaks.push("Bio fails the '3-second rule' (Unclear value).");
-    tips.push("Rewrite Bio using the formula: 'I help [Avatar] achieve [Result] via [Mechanism]'.");
+    tips.push("Rewrite Bio: 'I help [Avatar] achieve [Result] via [Mechanism]'.");
   }
 
   if (apiData.hasPinned) {
-    offerScore += 5;
+    offerScore += 5; // Có pinned là có điểm
     if (check.offer.pinnedTweetHasSocialProof) offerScore += 10;
-    else {
-      leaks.push("Pinned Tweet lacks Social Proof (Trust signals).");
-      tips.push("Edit your Pinned Tweet to include numbers, client wins, or revenue screenshots.");
-    }
+    else tips.push("Add numbers, client wins, or revenue screenshots to your Pinned Tweet.");
+    
+    if (check.offer.pinnedTweetRelatesToBio) offerScore += 5;
   } else {
     leaks.push("Missing Pinned Tweet (Wasted prime real estate).");
     tips.push("Pin your best-performing thread or your main offer immediately.");
   }
 
   // =================================================
-  // 4. MONETIZATION (Max 30 points)
+  // 4. MONETIZATION (Max 25 points)
   // =================================================
-  // Logic: Lead Magnet (15đ) > Link thường (5đ) > Không Link (0đ)
+  
   if (check.monetization.hasLeadMagnet && apiData.hasLink) {
-    moneyScore += 15;
+    moneyScore += 10;
   } else if (apiData.hasLink) {
     moneyScore += 5;
     leaks.push("Bio Link is not optimized for lead capture.");
-    tips.push("Replace your generic home page link with a Lead Magnet (Newsletter, Freebie) to capture emails.");
+    tips.push("Replace home page link with a Lead Magnet (Newsletter, Freebie).");
   } else {
     leaks.push("No Link in Bio = No Funnel = No Money.");
-    tips.push("Add a link to your Newsletter, Gumroad, or Booking page right now.");
   }
 
-  if (check.monetization.pinnedTweetHasCTA) moneyScore += 10;
-  else if (apiData.hasPinned) {
-    leaks.push("Pinned Tweet is a 'dead end' (No Call-to-Action).");
-    tips.push("Add a clear CTA at the end: 'Click below', 'DM me', or 'Sign up'.");
+  if (check.monetization.pinnedTweetHasCTA) moneyScore += 5;
+
+  if (apiData.canDM) {
+      moneyScore += 5;
+  } else {
+      leaks.push("DMs are closed to non-followers (Blocking cold outreach/sponsorships).");
+      tips.push("Enable DMs from everyone in your settings immediately.");
+  }
+  
+  // if (check.monetization.urgencyOrScarcity) moneyScore += 5;
+
+  // [NEW] Sells Own Product
+  if (check.monetization.sellsOwnProduct) {
+      moneyScore += 5;
+  } else {
+      tips.push("Stop renting your audience. Launch a simple owned product (eBook, Coaching) to increase LTV.");
   }
 
-  if (check.monetization.urgencyOrScarcity) moneyScore += 5;
-
-  // Tinh chỉnh điểm tổng (Max 100)
+  // Total Logic
   const totalScore = nicheScore + contentScore + offerScore + moneyScore;
 
   return {
     totalScore,
     leaks: leaks.slice(0, 5),
-    tips: tips.slice(0, 3),
+    tips: tips.slice(0, 4),
     breakdown: {
-      niche: nicheScore,
-      content: contentScore,
-      offer: offerScore,
-      monetization: moneyScore
+      niche: nicheScore,   // Max 20 -> * 5 = 100% UI
+      content: contentScore, // Max 25 -> * 4 = 100% UI
+      offer: offerScore,     // Max 30 -> / 0.3 = 100% UI
+      monetization: moneyScore // Max 25 -> * 4 = 100% UI
     }
   };
 }

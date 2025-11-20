@@ -23,7 +23,8 @@ export interface AuditChecklist {
   monetization: {
     hasLeadMagnet: boolean;
     pinnedTweetHasCTA: boolean;
-    urgencyOrScarcity: boolean;
+    // urgencyOrScarcity: boolean;
+    sellsOwnProduct: boolean;
   };
 }
 
@@ -36,7 +37,7 @@ CRITERIA FOR "TRUE" (Strict assessment):
 --- NICHE & IDENTITY ---
 1. bioHasKeywords: Bio MUST contain niche-specific keywords (e.g., "SaaS", "SEO", "Copywriting").
 2. bioShowsAuthority: Bio mentions specific numbers, titles, or achievements (e.g., "$10k/mo", "Founder", "Ex-Google", "5yrs exp").
-3. profilePhotoProfessional: Avatar is not default/missing and looks distinct/professional (Infer from url/description).
+3. profilePhotoProfessional: Avatar is not default/missing.
 
 --- CONTENT STRATEGY ---
 4. tweetsMatchBio: Recent tweets strictly relate to the Bio's topics.
@@ -49,9 +50,10 @@ CRITERIA FOR "TRUE" (Strict assessment):
 9. pinnedTweetHasSocialProof: Pinned tweet shows results, revenue, testimonials, or client logos.
 
 --- MONETIZATION ---
-10. hasLeadMagnet: The link in bio goes to a capture page (Newsletter, Gumroad, Calendly) rather than a generic home page (e.g., no raw linktree without context).
+10. hasLeadMagnet: The link in bio goes to a capture page (Newsletter, Gumroad, Calendly) rather than a generic home page.
 11. pinnedTweetHasCTA: Explicit instruction to click/DM.
 12. urgencyOrScarcity: CTA uses words like "Limited", "Only X left", "Ends soon", "Free for 24h".
+13. sellsOwnProduct: User promotes their OWN product/service (e.g., "My course", "My App", "Book me"). NOT just affiliate links.
 
 OUTPUT RULES:
 - "targetAudience": A short English phrase (e.g., "SaaS Founders & Indie Hackers").
@@ -78,7 +80,8 @@ IMPORTANT: You MUST return the result in this EXACT nested JSON structure. Do no
   "monetization": {
     "hasLeadMagnet": boolean,
     "pinnedTweetHasCTA": boolean,
-    "urgencyOrScarcity": boolean
+    "urgencyOrScarcity": boolean,
+    "sellsOwnProduct": boolean
   }
 }
 `;
@@ -98,18 +101,18 @@ export async function getAuditChecklist(payload: any): Promise<AuditChecklist> {
     const content = completion.choices[0]?.message?.content;
     if (!content) throw new Error('Empty response from AI');
 
-    console.log(JSON.parse(content) as AuditChecklist);
-
+    // console.log(JSON.parse(content) as AuditChecklist);
     return JSON.parse(content) as AuditChecklist;
+
   } catch (e: any) {
     console.error("AI Error:", e);
+    // Fallback safe data
     return {
       targetAudience: "General Audience",
       niche: { bioHasKeywords: false, bioShowsAuthority: false, profilePhotoProfessional: true },
       content: { tweetsMatchBio: false, usesFormatting: false, engagesAudience: false },
       offer: { bioClearProblemSolution: false, pinnedTweetRelatesToBio: false, pinnedTweetHasSocialProof: false },
-      monetization: { hasLeadMagnet: false, pinnedTweetHasCTA: false, urgencyOrScarcity: false }
+      monetization: { hasLeadMagnet: false, pinnedTweetHasCTA: false, sellsOwnProduct: false }
     };
   }
 }
-
