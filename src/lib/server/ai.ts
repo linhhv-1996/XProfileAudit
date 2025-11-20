@@ -14,6 +14,7 @@ export interface DetailedChecklist {
     professional_tone: boolean;
     consistent_branding: boolean;
     is_actually_authority: boolean; 
+    is_writer_archetype: boolean;
   };
   content: {
     consistent_topic: boolean;
@@ -59,6 +60,11 @@ Analyze the profile JSON (Bio, Tweets, Pinned). Return a JSON Checklist (Boolean
 2. content.is_value_dense:
    - TRUE ONLY IF: Tweets teach "How-to", share frameworks, or deep insights.
    - FALSE IF: Tweets are "Diary updates" ("I did this today"), "Complaints" ("Ugh API failed"), "Requests" ("I need ideas"), or "Status checks" ("GM").
+
+--- NICHE CLASSIFICATION (IMPORTANT) ---
+- niche.is_writer_archetype: 
+  - TRUE IF: Bio contains keywords: "Ghostwriter", "Copywriter", "Storyteller", "Author", "Writer", "Newsletter".
+  - FALSE IF: Bio is about "Developer", "Founder", "Designer", or generic.
 
 --- STANDARD CRITERIA (Default to FALSE) ---
 - niche.defines_target_audience: Explicitly names who it helps (e.g. "Founders", "Moms").
