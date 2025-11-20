@@ -9,6 +9,7 @@
   import AuditOverview from "$lib/components/analysis/AuditOverview.svelte";
   import ProFixesTab from "$lib/components/analysis/ProFixesTab.svelte";
   import MonetizationTab from "$lib/components/analysis/MonetizationTab.svelte";
+  import ProfileCard from "$lib/components/analysis/ProfileCard.svelte";
 
   export let hasResult: boolean;
   export let openProModal: () => void;
@@ -120,6 +121,11 @@
       {/if}
 
       {#if hasResult && analysisData}
+        <ProfileCard 
+           profile={analysisData.profile} 
+           totalScore={analysisData.analysis.totalScore} 
+        />
+
         {#if !user?.isPro}
           <div class="mt-0 rounded-lg bg-blue-50 border border-blue-200 p-4 text-center max-w-4xl mx-auto">
             <p class="text-sm text-blue-800">

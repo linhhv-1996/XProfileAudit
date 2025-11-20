@@ -92,6 +92,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         const isVerified = !!userRaw.is_blue_verified;
         const profileImageUrl = userRaw.avatar?.image_url || "";
         const canDM = !!userRaw.dm_permissions?.can_dm
+        profileData.profile_image_url_https = userRaw.avatar?.image_url || "";
+        profileData.screen_name = handle;
+        profileData.verified = isVerified;
+        profileData.name = userRaw?.core?.name || "Unknow";
 
         // --- Call 2: Lấy Tweets ---
         const tweetsUrl = `https://${API_HOST}/user-tweets?user=${rest_id}&count=20`;
@@ -154,6 +158,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         // 4. Gọi AI lấy Checklist (True/False)
         const checklist = await getAuditChecklist(aiPayload);
 
+        const followerCount = profileData.followers_count;
+
         // 5. Chuẩn bị dữ liệu check cứng từ API
         const apiChecks: ApiChecks = {
             hasLink: (profileData.entities?.url?.urls?.length || 0) > 0,
@@ -161,7 +167,63 @@ export const POST: RequestHandler = async ({ request, locals }) => {
             isVerified: isVerified,
             percentVisuals: percentVisuals,
             canDM: canDM,
+            followerCount: followerCount
         };
+
+        // ============================================================
+        // [NEW] WHALE BYPASS: Nếu > 50k Follower -> BỎ QUA AI LUÔN
+        // ============================================================
+        if (followerCount > 50000) {
+            console.log(`[WHALE DETECTED] ${handle} has ${followerCount} followers. Skipping AI.`);
+
+            const whaleResult = {
+                timestamp: Date.now(),
+                profile: profileData,
+                isVerified,
+                tweets: regularTweets,
+                pinnedTweet,
+                analysis: {
+                    targetAudience: "The Entire Internet 🌍",
+                    avgEngagementRate: formattedAvgER,
+                    totalScore: 100,
+                    keyScores: {
+                        nicheClarity: 100,
+                        contentStrategy: 100,
+                        offerClarity: 100,
+                        monetization: 100
+                    },
+                    leaks: [
+                        "Suffering from Success.", 
+                        "You broke the algorithm.", 
+                        "Your account is too big for this tool.",
+                        "Organic reach is unfair to others.",
+                        "No leaks found. You are the leak."
+                    ],
+                    tips: [
+                        "Keep doing whatever you are doing.",
+                        "Launch a $5000 course.",
+                        "Buy an island.",
+                        "Tweet literally anything.",
+                        "Invest in X Profile Booster 😉"
+                    ],
+                    pro: null
+                }
+            };
+
+            // Cache kết quả này
+             await setCache(`user_data:${handle}`, { 
+                profile: profileData, 
+                niche: { target_audience: "Everyone" },
+                apiChecks, 
+                recentTweetsText: recentTweetTexts,
+                avgEngagementRate: formattedAvgER
+            }, 3600);
+
+            await setCache(handle, whaleResult);
+            
+            return json(whaleResult);
+        }
+        // ============================================================
 
         // 6. Tính điểm Deterministic (Logic cứng)
         const scoring = calculateDeterministicScore(checklist, apiChecks);
@@ -177,17 +239,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
             tweets: regularTweets,
             pinnedTweet,
             analysis: {
-                targetAudience: checklist.targetAudience,
+                targetAudience: checklist.summary.target_audience,
                 avgEngagementRate: formattedAvgER,
                 totalScore: scoring.totalScore,
                 keyScores: {
-                    nicheClarity: Math.min(100, Math.round((scoring.breakdown.niche / 20) * 100)),
-                    contentStrategy: Math.min(100, Math.round((scoring.breakdown.content / 25) * 100)),
-                    offerClarity: Math.min(100, Math.round((scoring.breakdown.offer / 30) * 100)),
-                    monetization: Math.min(100, Math.round((scoring.breakdown.monetization / 25) * 100))
+                    nicheClarity: scoring.breakdown.niche,
+                    contentStrategy: scoring.breakdown.content,
+                    offerClarity: scoring.breakdown.offer,
+                    monetization: scoring.breakdown.monetization,
                 },
                 
-                // Lỗi & Lời khuyên
                 leaks: scoring.leaks,
                 tips: scoring.tips,
                 
@@ -202,7 +263,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         // Cache A: Lưu Context dữ liệu gốc (60 PHÚT)
         await setCache(`user_data:${handle}`, { 
             profile: profileData, 
-            niche: checklist.targetAudience,
+            niche: checklist.summary.target_audience,
             apiChecks, 
             recentTweetsText: recentTweetTexts,
             avgEngagementRate: formattedAvgER // Cache ER cho Pro tab

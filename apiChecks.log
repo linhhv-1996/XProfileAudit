@@ -1,9 +1,10 @@
---- LOG TIME: 2025-11-20T07:15:43.872Z ---
+--- LOG TIME: 2025-11-20T10:44:04.837Z ---
 
 {
-  hasLink: true,
-  hasPinned: true,
-  isVerified: true,
-  percentVisuals: 68,
-  canDM: true
+  hasLink: false,
+  hasPinned: false,
+  isVerified: false,
+  percentVisuals: 26,
+  canDM: false,
+  followerCount: 277
 }
